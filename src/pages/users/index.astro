@@ -241,8 +241,9 @@ switch (tab) {
               {/* Pages around current */}
               {[...Array(Math.min(5, totalPages))].map((_, i) => {
                 const pageNum = Math.max(1, Math.min(currentPage - 2 + i, totalPages));
-                if (pageNum <= 0 || pageNum > totalPages || (currentPage > 3 && pageNum === 1) || (currentPage < totalPages - 2 && pageNum === totalPages)) {
-                  return "";
+                /* FIXME 不能使用 <=0，改为 <1 */
+                if (pageNum <1 || pageNum > totalPages || (currentPage > 3 && pageNum === 1) || (currentPage < totalPages - 2 && pageNum === totalPages)) {
+                  return null;
                 }
 
                 return (
