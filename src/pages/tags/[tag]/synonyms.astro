@@ -1,0 +1,167 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import Header from '../../../components/Header.astro';
+import Sidebar from '../../../components/Sidebar.astro';
+import RightSidebar from '../../../components/RightSidebar.astro';
+import Footer from '../../../components/Footer.astro';
+
+// Get the tag from the URL parameter
+const { tag } = Astro.params;
+
+if (!tag) {
+  return Astro.redirect('/tags');
+}
+
+// Fetch tag information
+const response = await fetch(`${Astro.url.origin}/api/tags/${tag}`);
+const tagData = await response.json();
+
+// Mock tag synonyms - in a real application these would come from the API
+const synonyms = [
+  { name: `${tag}-alternative`, appliedCount: 145, createdDate: "2016-04-12", createdBy: "user12345" },
+  { name: `${tag.substring(0, 2)}${tag.substring(2)}js`, appliedCount: 87, createdDate: "2017-10-05", createdBy: "moderator42" },
+  { name: `${tag}-framework`, appliedCount: 53, createdDate: "2018-03-28", createdBy: "developer98" },
+];
+---
+
+<Layout title={`${tagData.name} Tag Synonyms - Stack Overflow Clone`}>
+  <Header />
+
+  <div class="flex flex-col md:flex-row">
+    {/* Sidebar is hidden on mobile, visible on md screens and up */}
+    <div class="hidden md:block">
+      <Sidebar />
+    </div>
+
+    <main class="flex-1 p-4 md:p-6">
+      <!-- Tag header -->
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4">
+        <div>
+          <h1 class="text-xl sm:text-2xl font-normal mb-1">
+            Synonyms for <a href={`/questions/tagged/${tagData.name}`} class="tag text-lg">{tagData.name}</a>
+          </h1>
+          <div class="text-[13px] text-[#6a737c]">
+            {tagData.count.toLocaleString()} questions
+          </div>
+        </div>
+        <div class="flex gap-2">
+          <a href={`/questions/ask?tags=${tagData.name}`} class="btn-primary">Ask Question</a>
+        </div>
+      </div>
+
+      <!-- Tag navigation -->
+      <div class="mb-6 border-b border-[#e3e6e8]">
+        <div class="flex flex-wrap">
+          <a href={`/questions/tagged/${tagData.name}`} class="px-3 py-2 text-sm text-[#6a737c] hover:text-[#3b4045]">Questions</a>
+          <a href={`/tags/${tagData.name}/synonyms`} class="px-3 py-2 text-sm text-[#3b4045] border-b-2 border-[#f48024]">Synonyms</a>
+          <a href={`/tags/${tagData.name}/info`} class="px-3 py-2 text-sm text-[#6a737c] hover:text-[#3b4045]">Info</a>
+          <a href={`/tags/${tagData.name}/hot`} class="px-3 py-2 text-sm text-[#6a737c] hover:text-[#3b4045]">Hot</a>
+          <a href={`/tags/${tagData.name}/new`} class="px-3 py-2 text-sm text-[#6a737c] hover:text-[#3b4045]">New</a>
+        </div>
+      </div>
+
+      <!-- Synonyms description -->
+      <div class="bg-white rounded-md mb-6">
+        <div class="mb-6">
+          <p class="text-[15px] mb-4">
+            A tag synonym is a tag that, when used by an asker, will be replaced by the tag's master tag.
+            Users generally don't need to worry about tag synonyms, but tag synonyms help the system recognize that
+            different tags mean the same thing.
+          </p>
+          <p class="text-[15px]">
+            For example, <code>{tagData.name}-js</code> might be a synonym of <code>{tagData.name}</code>
+            because they mean the same thing.
+          </p>
+        </div>
+
+        <!-- Create new synonym form -->
+        <div class="mb-8 p-4 border border-[#e3e6e8] rounded-md">
+          <h2 class="text-lg font-medium mb-4">Propose a new synonym</h2>
+          <form class="flex flex-col gap-4">
+            <div>
+              <label for="synonym-name" class="block text-sm text-[#3b4045] mb-1">Synonym name</label>
+              <input
+                type="text"
+                id="synonym-name"
+                placeholder={`e.g., ${tagData.name}-library`}
+                class="w-full sm:w-72 p-2 border border-[#babfc4] rounded focus:border-[#6bbbf7] focus:outline-none focus:shadow-[0_0_0_4px_rgba(0,116,204,0.15)]"
+              />
+            </div>
+            <div class="flex items-center gap-2">
+              <button type="submit" class="btn-primary" disabled>Propose</button>
+              <p class="text-xs text-[#6a737c]">
+                You need at least 1250 reputation and a total answer score of 5 on the tag to suggest tag synonyms.
+              </p>
+            </div>
+          </form>
+        </div>
+
+        <!-- Existing synonyms -->
+        <div class="mb-8">
+          <h2 class="text-xl mb-4">Active synonyms for {tagData.name}</h2>
+
+          {synonyms.length > 0 ? (
+            <div class="overflow-x-auto">
+              <table class="w-full border-collapse">
+                <thead>
+                  <tr class="bg-[#f8f9f9]">
+                    <th class="py-2 px-4 text-left font-normal text-[13px] text-[#6a737c] border-y border-[#e3e6e8]">Synonym</th>
+                    <th class="py-2 px-4 text-left font-normal text-[13px] text-[#6a737c] border-y border-[#e3e6e8]">Applied</th>
+                    <th class="py-2 px-4 text-left font-normal text-[13px] text-[#6a737c] border-y border-[#e3e6e8]">Created</th>
+                    <th class="py-2 px-4 text-left font-normal text-[13px] text-[#6a737c] border-y border-[#e3e6e8]">Created By</th>
+                    <th class="py-2 px-4 text-left font-normal text-[13px] text-[#6a737c] border-y border-[#e3e6e8]">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {synonyms.map((synonym, index) => (
+                    <tr class={index % 2 === 1 ? 'bg-[#f8f9f9]' : ''}>
+                      <td class="py-3 px-4 border-b border-[#e3e6e8]">
+                        <a href={`/questions/tagged/${synonym.name}`} class="text-[#0074cc] hover:text-[#0a95ff]">{synonym.name}</a>
+                      </td>
+                      <td class="py-3 px-4 border-b border-[#e3e6e8]">{synonym.appliedCount}</td>
+                      <td class="py-3 px-4 border-b border-[#e3e6e8]">{synonym.createdDate}</td>
+                      <td class="py-3 px-4 border-b border-[#e3e6e8]">
+                        <a href={`/users/${synonym.createdBy}`} class="text-[#0074cc] hover:text-[#0a95ff]">{synonym.createdBy}</a>
+                      </td>
+                      <td class="py-3 px-4 border-b border-[#e3e6e8]">
+                        <button class="text-[#0074cc] hover:text-[#0a95ff] text-sm" disabled>Remove</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div class="p-4 bg-[#f8f9f9] border border-[#e3e6e8] rounded-md text-[#6a737c]">
+              No synonyms found for {tagData.name}.
+            </div>
+          )}
+        </div>
+
+        <!-- Pending synonyms -->
+        <div class="mb-8">
+          <h2 class="text-xl mb-4">Pending synonym suggestions</h2>
+          <div class="p-4 bg-[#f8f9f9] border border-[#e3e6e8] rounded-md text-[#6a737c]">
+            No pending suggestions found.
+          </div>
+        </div>
+      </div>
+    </main>
+
+    {/* Right sidebar is hidden on mobile and tablet, visible on lg screens and up */}
+    <div class="hidden lg:block">
+      <RightSidebar />
+    </div>
+  </div>
+
+  <Footer />
+</Layout>
+
+<style>
+  .btn-primary {
+    @apply text-white bg-[#0a95ff] hover:bg-[#0074cc] px-3 py-2 rounded-[3px] text-[13px] shadow-sm;
+  }
+  .tag {
+    @apply inline-flex items-center px-1.5 py-0.5 rounded text-[12px] bg-[#e1ecf4] text-[#39739d];
+  }
+</style>

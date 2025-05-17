@@ -121,7 +121,7 @@ const users = [
     ],
     topAnswers: [
       { title: 'How to efficiently paginate results in MySQL', votes: 5423, accepted: true, link: '/questions/23460' },
-      { title: 'What's the difference between INNER JOIN and OUTER JOIN?', votes: 4921, accepted: true, link: '/questions/23461' },
+      { title: 'What`s the difference between INNER JOIN and OUTER JOIN?', votes: 4921, accepted: true, link: '/questions/23461' },
       { title: 'How to optimize SQL queries for large datasets', votes: 4732, accepted: true, link: '/questions/23462' }
     ]
   },

@@ -1,0 +1,152 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import Header from '../../../components/Header.astro';
+import Sidebar from '../../../components/Sidebar.astro';
+import RightSidebar from '../../../components/RightSidebar.astro';
+import Footer from '../../../components/Footer.astro';
+
+// Get the tag from the URL parameter
+const { tag } = Astro.params;
+
+if (!tag) {
+  return Astro.redirect('/tags');
+}
+
+// Fetch tag information
+const response = await fetch(`${Astro.url.origin}/api/tags/${tag}`);
+const tagData = await response.json();
+
+// Format numbers with commas
+function formatNumber(num: number): string {
+  return num.toLocaleString();
+}
+---
+
+<Layout title={`${tagData.name} Tag Info - Stack Overflow Clone`}>
+  <Header />
+
+  <div class="flex flex-col md:flex-row">
+    {/* Sidebar is hidden on mobile, visible on md screens and up */}
+    <div class="hidden md:block">
+      <Sidebar />
+    </div>
+
+    <main class="flex-1 p-4 md:p-6">
+      <!-- Tag header -->
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4">
+        <div>
+          <h1 class="text-xl sm:text-2xl font-normal mb-1">
+            About <a href={`/questions/tagged/${tagData.name}`} class="tag text-lg">{tagData.name}</a>
+          </h1>
+          <div class="text-[13px] text-[#6a737c]">
+            {formatNumber(tagData.count)} questions
+          </div>
+        </div>
+        <div class="flex gap-2">
+          <a href={`/questions/ask?tags=${tagData.name}`} class="btn-primary">Ask Question</a>
+        </div>
+      </div>
+
+      <!-- Tag navigation -->
+      <div class="mb-6 border-b border-[#e3e6e8]">
+        <div class="flex flex-wrap">
+          <a href={`/questions/tagged/${tagData.name}`} class="px-3 py-2 text-sm text-[#6a737c] hover:text-[#3b4045]">Questions</a>
+          <a href={`/tags/${tagData.name}/synonyms`} class="px-3 py-2 text-sm text-[#6a737c] hover:text-[#3b4045]">Synonyms</a>
+          <a href={`/tags/${tagData.name}/info`} class="px-3 py-2 text-sm text-[#3b4045] border-b-2 border-[#f48024]">Info</a>
+          <a href={`/tags/${tagData.name}/hot`} class="px-3 py-2 text-sm text-[#6a737c] hover:text-[#3b4045]">Hot</a>
+          <a href={`/tags/${tagData.name}/new`} class="px-3 py-2 text-sm text-[#6a737c] hover:text-[#3b4045]">New</a>
+        </div>
+      </div>
+
+      <!-- Tag description -->
+      <div class="bg-white rounded-md mb-6">
+        <div class="mb-8">
+          <h2 class="text-xl mb-2">Tag Description</h2>
+          <div class="p-4 border border-[#e3e6e8] rounded-md text-[15px]">
+            <p class="mb-4">{tagData.description}</p>
+            <p>{tagData.excerpt}</p>
+          </div>
+        </div>
+
+        <!-- Tag statistics -->
+        <div class="mb-8">
+          <h2 class="text-xl mb-2">Statistics</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            <div class="p-4 border border-[#e3e6e8] rounded-md flex flex-col">
+              <span class="text-sm text-[#6a737c]">Questions today</span>
+              <span class="text-xl">{formatNumber(tagData.stats.questionsToday)}</span>
+            </div>
+            <div class="p-4 border border-[#e3e6e8] rounded-md flex flex-col">
+              <span class="text-sm text-[#6a737c]">Questions this week</span>
+              <span class="text-xl">{formatNumber(tagData.stats.questionsThisWeek)}</span>
+            </div>
+            <div class="p-4 border border-[#e3e6e8] rounded-md flex flex-col">
+              <span class="text-sm text-[#6a737c]">Questions this month</span>
+              <span class="text-xl">{formatNumber(tagData.stats.questionsThisMonth)}</span>
+            </div>
+            <div class="p-4 border border-[#e3e6e8] rounded-md flex flex-col">
+              <span class="text-sm text-[#6a737c]">Total questions</span>
+              <span class="text-xl">{formatNumber(tagData.stats.questionsTotal)}</span>
+            </div>
+            <div class="p-4 border border-[#e3e6e8] rounded-md flex flex-col">
+              <span class="text-sm text-[#6a737c]">Askers</span>
+              <span class="text-xl">{formatNumber(tagData.stats.askers)}</span>
+            </div>
+            <div class="p-4 border border-[#e3e6e8] rounded-md flex flex-col">
+              <span class="text-sm text-[#6a737c]">Answerers</span>
+              <span class="text-xl">{formatNumber(tagData.stats.answerers)}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Popular questions -->
+        {tagData.popularQuestions && tagData.popularQuestions.length > 0 && (
+          <div class="mb-8">
+            <h2 class="text-xl mb-2">Popular Questions</h2>
+            <div class="border border-[#e3e6e8] rounded-md divide-y">
+              {tagData.popularQuestions.map((question) => (
+                <div class="p-4">
+                  <div class="flex flex-col md:flex-row md:items-center justify-between gap-2">
+                    <a href={`/questions/${question.id}`} class="text-[#0074cc] hover:text-[#0a95ff]">{question.title}</a>
+                    <div class="flex flex-wrap gap-2 text-xs text-[#6a737c]">
+                      <span>{formatNumber(question.views)} views</span>
+                      <span>{formatNumber(question.answers)} answers</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <!-- Related tags -->
+        {tagData.relatedTags && tagData.relatedTags.length > 0 && (
+          <div class="mb-8">
+            <h2 class="text-xl mb-2">Related Tags</h2>
+            <div class="flex flex-wrap gap-2">
+              {tagData.relatedTags.map((relatedTag) => (
+                <a href={`/questions/tagged/${relatedTag}`} class="tag hover:bg-[#d0e3f1]">{relatedTag}</a>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </main>
+
+    {/* Right sidebar is hidden on mobile and tablet, visible on lg screens and up */}
+    <div class="hidden lg:block">
+      <RightSidebar />
+    </div>
+  </div>
+
+  <Footer />
+</Layout>
+
+<style>
+  .btn-primary {
+    @apply text-white bg-[#0a95ff] hover:bg-[#0074cc] px-3 py-2 rounded-[3px] text-[13px] shadow-sm;
+  }
+  .tag {
+    @apply inline-flex items-center px-1.5 py-0.5 rounded text-[12px] bg-[#e1ecf4] text-[#39739d];
+  }
+</style>
