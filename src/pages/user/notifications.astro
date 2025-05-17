@@ -1,0 +1,173 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import Sidebar from '../../components/Sidebar.astro';
+import Notification from '../../components/Notification.astro';
+import { getSession } from 'auth-astro/server';
+
+// Get the current session
+const session = await getSession(Astro.request);
+const user = session?.user;
+
+// Redirect if not logged in
+if (!user) {
+  return Astro.redirect('/users/login?redirect=/user/notifications');
+}
+
+// In a real app, this would be fetched from an API
+const notifications = [
+  {
+    id: '1',
+    type: 'comment',
+    message: 'John Doe commented on your question about React hooks',
+    link: '/questions/1#comment-1',
+    date: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
+    read: false
+  },
+  {
+    id: '2',
+    type: 'answer',
+    message: 'Sarah Smith posted an answer to your question about TypeScript interfaces',
+    link: '/questions/2#answer-1',
+    date: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
+    read: false
+  },
+  {
+    id: '3',
+    type: 'vote',
+    message: 'Your answer about Docker containers received 5 upvotes',
+    link: '/questions/3#answer-2',
+    date: new Date(Date.now() - 1000 * 60 * 60 * 5), // 5 hours ago
+    read: true
+  },
+  {
+    id: '4',
+    type: 'accept',
+    message: 'Your answer about JavaScript promises was accepted',
+    link: '/questions/4#answer-3',
+    date: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
+    read: true
+  },
+  {
+    id: '5',
+    type: 'mention',
+    message: 'You were mentioned in a comment by Michael Brown',
+    link: '/questions/5#comment-4',
+    date: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2), // 2 days ago
+    read: true
+  },
+  {
+    id: '6',
+    type: 'vote',
+    message: 'Your question about React context API received 10 upvotes',
+    link: '/questions/6',
+    date: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3), // 3 days ago
+    read: true
+  }
+];
+
+const unreadCount = notifications.filter(n => !n.read).length;
+---
+
+<Layout title="Notifications - Stack Overflow">
+  <Header />
+
+  <div class="container mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 mt-8">
+    <div class="flex flex-col md:flex-row">
+      <div class="w-full md:w-[164px] mb-4 md:mb-0">
+        <Sidebar />
+      </div>
+
+      <div class="flex-1 md:ml-6">
+        <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md shadow-sm">
+          <div class="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 p-4">
+            <h1 class="text-xl font-bold text-gray-900 dark:text-gray-100">Notifications</h1>
+
+            {unreadCount > 0 && (
+              <button id="mark-all-read" class="text-sm text-blue-500 hover:text-blue-600 dark:hover:text-blue-400">
+                Mark all as read
+              </button>
+            )}
+          </div>
+
+          <div class="divide-y divide-gray-200 dark:divide-gray-700">
+            {notifications.length > 0 ? (
+              <div>
+                {notifications.map((notification) => (
+                  <Notification
+                    id={notification.id}
+                    type={notification.type}
+                    message={notification.message}
+                    link={notification.link}
+                    date={notification.date}
+                    read={notification.read}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div class="p-8 text-center text-gray-500 dark:text-gray-400">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mx-auto mb-4 text-gray-400">
+                  <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+                <p>You don't have any notifications yet</p>
+                <p class="mt-2 text-sm">When you get notifications, they'll show up here</p>
+              </div>
+            )}
+          </div>
+
+          {notifications.length > 10 && (
+            <div class="p-4 border-t border-gray-200 dark:border-gray-700 flex justify-center">
+              <button class="text-sm text-blue-500 hover:text-blue-600 dark:hover:text-blue-400">
+                Load more notifications
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <Footer />
+</Layout>
+
+<script>
+  // Mark all as read
+  const markAllReadButton = document.getElementById('mark-all-read');
+
+  if (markAllReadButton) {
+    markAllReadButton.addEventListener('click', () => {
+      // In a real app, would call an API to mark all as read
+      console.log('Mark all as read - would call API here');
+
+      // For demo purposes, update UI directly
+      const unreadItems = document.querySelectorAll('.bg-blue-50, .dark\\:bg-gray-800');
+      unreadItems.forEach(item => {
+        item.classList.remove('bg-blue-50', 'dark:bg-gray-800');
+        item.classList.add('bg-white', 'dark:bg-gray-900');
+
+        const dot = item.querySelector('.bg-blue-500');
+        if (dot) dot.remove();
+      });
+
+      markAllReadButton.remove();
+    });
+  }
+
+  // Handle notification item clicks
+  const notificationItems = document.querySelectorAll('[data-notification-id]');
+  notificationItems.forEach(item => {
+    item.addEventListener('click', () => {
+      // In a real app, would call an API to mark as read
+      console.log(`Clicked notification ${item.dataset.notificationId} - would call API to mark as read`);
+
+      // For demo purposes, update UI directly
+      item.classList.remove('bg-blue-50', 'dark:bg-gray-800');
+      item.classList.add('bg-white', 'dark:bg-gray-900');
+
+      const dot = item.querySelector('.bg-blue-500');
+      if (dot) dot.remove();
+    });
+  });
+</script>

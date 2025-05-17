@@ -1,0 +1,11 @@
+[build]
+  command = "bun run build"
+  publish = "dist"
+
+[[redirects]]
+  from = "/*"
+  to = "/.netlify/functions/entry"
+  status = 200
+
+[dev]
+  framework = "astro"

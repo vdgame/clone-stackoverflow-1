@@ -1,0 +1,528 @@
+---
+// Initial static questions (these would come from a database in a real app)
+const initialQuestions = [
+  {
+    id: 1,
+    title: "How to compile Qt webengine (6.8.3) on Ubuntu with proprietary codecs using Cmake and Github Actions",
+    content: "I have a lot of trouble to build Qt WebEngine from git using cmake on Ubuntu to enable webengine proprietary codecs. Because it's not so convenient, I use Github Actions to build Qt WebEngine. But I...",
+    votes: 0,
+    answers: 0,
+    views: 2,
+    timestamp: "1 min ago",
+    user: {
+      name: "admbrill",
+      reputation: 1,
+      image: "https://ext.same-assets.com/1773809462/1615090187.jpeg"
+    },
+    tags: ["qt", "build", "compiler-errors", "continuous-integration", "qtwebengine"],
+    collective: {
+      name: "CI/CD Collective",
+      slug: "ci-cd"
+    }
+  },
+  {
+    id: 2,
+    title: "Check if there is nothing to publich into a branch befor publish a new pipeline in azure",
+    content: "Into Azure, how can i check if there is nothing to publish into the main remote branch before publishing a new pipeline? I want to publish a new pipeline and make sure that there nothing will be...",
+    votes: 0,
+    answers: 0,
+    views: 4,
+    timestamp: "4 mins ago",
+    user: {
+      name: "Ângelo Rigo",
+      reputation: 2169,
+      image: "https://ext.same-assets.com/1773809462/3823315869.png"
+    },
+    tags: ["git", "azure-devops"]
+  },
+  {
+    id: 3,
+    title: "InfluxDB 2 crashes periodically on Mondays",
+    content: "After migration to influxDB 2 we are experiencing recurring crashes. Every few weeks, the database crashes and becomes unresponsive. Every request ends up with a status 500 internal error and stays in...",
+    votes: -1,
+    answers: 0,
+    views: 5,
+    timestamp: "4 mins ago",
+    user: {
+      name: "Jakub",
+      reputation: 1,
+      image: "https://ext.same-assets.com/1773809462/3522180155.png"
+    },
+    tags: ["influxdb", "influxdb-2"]
+  },
+  {
+    id: 4,
+    title: "Type narrowing an element of tuple based on type of other element",
+    content: "I am looking for a way to type hint a function that returns a tuple containing a success flag and, in the case of success, None, or, in the case of failure, an Exception instance. Declaring the...",
+    votes: 0,
+    answers: 0,
+    views: 4,
+    timestamp: "4 mins ago",
+    user: {
+      name: "couteau",
+      reputation: 317,
+      image: "https://ext.same-assets.com/1773809462/2126799372.png"
+    },
+    tags: ["python", "typechecking"]
+  },
+  {
+    id: 5,
+    title: "How can i activate a block on right click. minecraft forge 1.16.5",
+    content: "I'm trying to make a block that sends me to a new dimension but when i try right clicking it nothing happens. I've put a few debug messages to send a message to the chat or to show up in the logs when...",
+    votes: 0,
+    answers: 0,
+    views: 3,
+    timestamp: "4 mins ago",
+    user: {
+      name: "minecraftchest2",
+      reputation: 13,
+      image: "https://ext.same-assets.com/1773809462/1145680541.png"
+    },
+    tags: ["minecraft-forge"]
+  }
+];
+
+// Pass initial questions to the client-side script
+const questions = initialQuestions;
+
+// Get current sort from URL or default to 'newest'
+const url = new URL(Astro.request.url);
+const currentSort = url.searchParams.get('sort') || 'newest';
+
+// Get tab from URL or default to 'Newest'
+const currentTab = url.searchParams.get('tab') || 'Newest';
+---
+
+<div class="mb-4">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-4">
+    <h1 class="text-xl sm:text-2xl font-normal">Newest Questions</h1>
+    <a href="/questions/ask" class="btn-primary text-center sm:text-left">Ask Question</a>
+  </div>
+
+  <div class="text-[13px] text-[#6a737c] mb-4">
+    24,232,880 questions
+  </div>
+
+  <!-- Tabs for desktop -->
+  <div class="hidden md:flex border-b border-[#e3e6e8] mb-4">
+    <a href="/questions?tab=Newest" class={`px-3 py-2 text-sm ${currentTab === 'Newest' ? 'text-[#3b4045] border-b-2 border-[#f48024]' : 'text-[#6a737c] hover:text-[#3b4045]'}`}>Newest</a>
+    <a href="/questions?tab=Active" class={`px-3 py-2 text-sm ${currentTab === 'Active' ? 'text-[#3b4045] border-b-2 border-[#f48024]' : 'text-[#6a737c] hover:text-[#3b4045]'}`}>Active</a>
+    <a href="/questions?tab=Bounties" class={`px-3 py-2 text-sm ${currentTab === 'Bounties' ? 'text-[#3b4045] border-b-2 border-[#f48024]' : 'text-[#6a737c] hover:text-[#3b4045]'} flex items-center`}>
+      Bountied
+      <span class="ml-1 px-1.5 py-0.5 bg-[#0074cc] rounded-sm text-white text-[10px]">24</span>
+    </a>
+    <a href="/questions?tab=Unanswered" class={`px-3 py-2 text-sm ${currentTab === 'Unanswered' ? 'text-[#3b4045] border-b-2 border-[#f48024]' : 'text-[#6a737c] hover:text-[#3b4045]'}`}>Unanswered</a>
+    <div class="ml-auto">
+      <button class="flex items-center px-3 py-2 text-sm text-[#6a737c] hover:text-[#3b4045]">
+        More
+        <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+        </svg>
+      </button>
+    </div>
+    <div class="flex items-center">
+      <button class="flex items-center px-3 py-2 text-sm text-[#6a737c] hover:text-[#3b4045]">
+        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+        </svg>
+        Filter
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile tabs as dropdown -->
+  <div class="md:hidden mb-4">
+    <div class="border border-[#e3e6e8] rounded">
+      <select id="mobile-tabs" class="w-full p-2 bg-white outline-none text-sm">
+        <option value="newest" selected={currentTab === 'Newest'}>Newest</option>
+        <option value="active" selected={currentTab === 'Active'}>Active</option>
+        <option value="bountied" selected={currentTab === 'Bounties'}>Bountied (24)</option>
+        <option value="unanswered" selected={currentTab === 'Unanswered'}>Unanswered</option>
+        <option value="more">More</option>
+      </select>
+    </div>
+    <div class="flex justify-end mt-2">
+      <button class="flex items-center px-2 py-1 text-sm text-[#6a737c] hover:text-[#3b4045] border border-[#e3e6e8] rounded">
+        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+        </svg>
+        Filter
+      </button>
+    </div>
+  </div>
+
+  <!-- Sort options -->
+  <div class="flex justify-end mb-4">
+    <div class="relative inline-block text-left" id="sort-dropdown-container">
+      <button id="sort-dropdown-button" class="inline-flex justify-center items-center px-3 py-1.5 border border-[#e3e6e8] rounded text-sm text-[#6a737c] hover:bg-[#f8f9f9]">
+        <span id="current-sort-display">
+          {currentSort === 'newest' ? 'Newest' :
+           currentSort === 'oldest' ? 'Oldest' :
+           currentSort === 'votes' ? 'Most votes' : 'Newest'}
+        </span>
+        <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+        </svg>
+      </button>
+
+      <div id="sort-dropdown-menu" class="hidden origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
+        <div class="py-1" role="menu" aria-orientation="vertical" aria-labelledby="sort-dropdown-button">
+          <a href={`/questions?tab=${currentTab}&sort=newest`} class={`${currentSort === 'newest' ? 'bg-gray-100 text-gray-900' : 'text-gray-700'} block px-4 py-2 text-sm hover:bg-gray-100`} role="menuitem">Newest</a>
+          <a href={`/questions?tab=${currentTab}&sort=oldest`} class={`${currentSort === 'oldest' ? 'bg-gray-100 text-gray-900' : 'text-gray-700'} block px-4 py-2 text-sm hover:bg-gray-100`} role="menuitem">Oldest</a>
+          <a href={`/questions?tab=${currentTab}&sort=votes`} class={`${currentSort === 'votes' ? 'bg-gray-100 text-gray-900' : 'text-gray-700'} block px-4 py-2 text-sm hover:bg-gray-100`} role="menuitem">Most votes</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divide-y">
+    {questions.map((question) => (
+      <div class="py-4 grid grid-cols-[auto_1fr] sm:gap-4 gap-2">
+        <!-- Vote, answers, views counts -->
+        <div class="flex flex-col items-end text-[13px] text-[#6a737c] w-[50px] sm:w-[60px]">
+          <div class="mb-1">
+            <span class={`font-medium ${question.votes < 0 ? 'text-[#d1383d]' : question.votes > 0 ? 'text-[#3d8f58]' : ''}`}>{question.votes}</span> votes
+          </div>
+          <div class="mb-1">
+            <span class={`px-1.5 py-0.5 rounded ${question.answers > 0 ? 'bg-[#5eba7d] text-white' : 'border border-[#6a737c]'}`}>{question.answers}</span> answers
+          </div>
+          <div>
+            <span>{question.views}</span> views
+          </div>
+        </div>
+
+        <div>
+          <h3 class="text-[15px] sm:text-[17px] mb-1">
+            <a href={`/questions/${question.id}`} class="text-[#0074cc] hover:text-[#0a95ff]">{question.title}</a>
+          </h3>
+
+          <div class="text-[12px] sm:text-[13px] text-[#3b4045] mb-2">
+            {question.content}
+          </div>
+
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
+            <div class="flex flex-wrap gap-1">
+              {question.tags.map((tag) => (
+                <a href={`/questions/tagged/${tag}`} class="tag hover:bg-[#d0e3f1]">{tag}</a>
+              ))}
+            </div>
+
+            <div class="flex items-center text-[11px] sm:text-[12px]">
+              {question.collective && (
+                <a href={`/collectives/${question.collective.slug}`} class="hidden sm:flex items-center mr-2">
+                  <div class="w-4 h-4 bg-[#f1f2f3] flex items-center justify-center rounded mr-1">
+                    <span class="text-[10px] text-[#525960] font-bold">C</span>
+                  </div>
+                  <span class="text-[#0074cc]">{question.collective.name}</span>
+                </a>
+              )}
+
+              <div class="flex items-center">
+                <a href={`/users/${question.user.name}`} class="flex items-center">
+                  <img src={question.user.image} alt={question.user.name} class="w-4 h-4 rounded mr-1" />
+                  <span class="text-[#0074cc]">{question.user.name}</span>
+                </a>
+                <span class="text-[#6a737c] ml-1">
+                  <span class="font-bold">{question.user.reputation}</span>
+                </span>
+                <span class="text-[#6a737c] ml-1">asked {question.timestamp}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    ))}
+  </div>
+
+  <!-- Pagination for desktop -->
+  <div class="hidden sm:flex justify-between items-center mt-8">
+    <div>
+      <div class="flex items-center space-x-1">
+        <a href="javascript:void(0)" class="w-8 h-8 flex items-center justify-center rounded border border-[#d6d9dc] bg-[#f48024] text-white">1</a>
+        <a href="javascript:void(0)" class="w-8 h-8 flex items-center justify-center rounded border border-[#d6d9dc] hover:bg-[#f8f9f9] text-[#3b4045]">2</a>
+        <a href="javascript:void(0)" class="w-8 h-8 flex items-center justify-center rounded border border-[#d6d9dc] hover:bg-[#f8f9f9] text-[#3b4045]">3</a>
+        <a href="javascript:void(0)" class="w-8 h-8 flex items-center justify-center rounded border border-[#d6d9dc] hover:bg-[#f8f9f9] text-[#3b4045]">4</a>
+        <a href="javascript:void(0)" class="w-8 h-8 flex items-center justify-center rounded border border-[#d6d9dc] hover:bg-[#f8f9f9] text-[#3b4045]">5</a>
+        <span class="px-2">...</span>
+        <a href="javascript:void(0)" class="w-auto h-8 px-2 flex items-center justify-center rounded border border-[#d6d9dc] hover:bg-[#f8f9f9] text-[#3b4045]">1615626</a>
+        <a href="javascript:void(0)" class="w-auto h-8 px-2 flex items-center justify-center rounded border border-[#d6d9dc] hover:bg-[#f8f9f9] text-[#3b4045]">Next</a>
+      </div>
+    </div>
+
+    <div class="flex items-center space-x-2">
+      <button class="px-2 h-8 border border-[#d6d9dc] rounded hover:bg-[#f8f9f9] text-[13px] text-[#3b4045]">15</button>
+      <button class="px-2 h-8 border border-[#d6d9dc] rounded hover:bg-[#f8f9f9] text-[13px] text-[#3b4045]">30</button>
+      <button class="px-2 h-8 border border-[#d6d9dc] rounded hover:bg-[#f8f9f9] text-[13px] text-[#3b4045]">50</button>
+      <span class="text-[13px] text-[#3b4045]">per page</span>
+    </div>
+  </div>
+
+  <!-- Simplified pagination for mobile -->
+  <div class="flex sm:hidden justify-between items-center mt-6">
+    <a href="javascript:void(0)" class="px-3 py-1 border border-[#d6d9dc] rounded text-[#3b4045] bg-[#f8f9f9]">Prev</a>
+    <span class="text-sm">Page 1 of 1615626</span>
+    <a href="javascript:void(0)" class="px-3 py-1 border border-[#d6d9dc] rounded text-[#3b4045] bg-[#f8f9f9]">Next</a>
+  </div>
+
+  <!-- Real-time status indicator -->
+  <div id="realtime-status" class="fixed bottom-4 right-4 bg-[#f8f9f9] dark:bg-[#2d2d2d] border border-[#d6d9dc] dark:border-[#3d3d3d] rounded-lg shadow-md p-2 text-sm hidden z-50">
+    <div class="flex items-center">
+      <span class="h-2 w-2 rounded-full bg-green-500 mr-2 pulse-animation"></span>
+      <span>Real-time updates active</span>
+    </div>
+    <div id="new-content-alert" class="mt-1 text-[#0074cc] dark:text-[#6cbbf7] hidden cursor-pointer">
+      New questions available. Click to view.
+    </div>
+  </div>
+</div>
+
+<style>
+  .pulse-animation {
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.4;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+
+  .question-enter {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  .question-enter-active {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 300ms, transform 300ms;
+    background-color: rgba(252, 233, 185, 0.3);
+  }
+
+  .question-exit {
+    opacity: 1;
+  }
+
+  .question-exit-active {
+    opacity: 0;
+    transition: opacity 300ms;
+  }
+
+  .highlight-new {
+    animation: highlightFade 4s ease-out;
+  }
+
+  @keyframes highlightFade {
+    0% {
+      background-color: rgba(252, 233, 185, 0.5);
+    }
+    100% {
+      background-color: transparent;
+    }
+  }
+</style>
+
+<script>
+  // Initial data passed from the server
+  const initialQuestions = JSON.parse(JSON.stringify(Array.from(document.querySelectorAll('.py-4.grid'))
+    .map((el, i) => {
+      const titleEl = el.querySelector('h3 a');
+      const id = parseInt(titleEl?.getAttribute('href')?.split('/').pop() || (i + 1).toString());
+      const title = titleEl?.textContent || '';
+
+      return { id, title, element: el };
+    })));
+
+  // Setup sort dropdown functionality
+  document.addEventListener('DOMContentLoaded', () => {
+    const sortDropdownButton = document.getElementById('sort-dropdown-button');
+    const sortDropdownMenu = document.getElementById('sort-dropdown-menu');
+
+    if (sortDropdownButton && sortDropdownMenu) {
+      sortDropdownButton.addEventListener('click', () => {
+        sortDropdownMenu.classList.toggle('hidden');
+      });
+
+      // Close the dropdown when clicking outside
+      document.addEventListener('click', (event) => {
+        if (!sortDropdownButton.contains(event.target) && !sortDropdownMenu.contains(event.target)) {
+          sortDropdownMenu.classList.add('hidden');
+        }
+      });
+
+      // Handle mobile tab selection redirect
+      const mobileTabSelect = document.getElementById('mobile-tabs');
+      if (mobileTabSelect) {
+        mobileTabSelect.addEventListener('change', (e) => {
+          const tabValue = e.target.value;
+          const currentUrl = new URL(window.location.href);
+          const sort = currentUrl.searchParams.get('sort') || 'newest';
+          window.location.href = `/questions?tab=${tabValue.charAt(0).toUpperCase() + tabValue.slice(1)}&sort=${sort}`;
+        });
+      }
+    }
+  });
+
+  // Function to create a question element
+  function createQuestionElement(question) {
+    // Create a template element
+    const template = document.createElement('template');
+
+    // HTML for the new question
+    template.innerHTML = `
+      <div class="py-4 grid grid-cols-[auto_1fr] sm:gap-4 gap-2 highlight-new">
+        <div class="flex flex-col items-end text-[13px] text-[#6a737c] w-[50px] sm:w-[60px]">
+          <div class="mb-1">
+            <span class="font-medium ${question.votes < 0 ? 'text-[#d1383d]' : question.votes > 0 ? 'text-[#3d8f58]' : ''}">${question.votes || 0}</span> votes
+          </div>
+          <div class="mb-1">
+            <span class="px-1.5 py-0.5 rounded ${question.answers > 0 ? 'bg-[#5eba7d] text-white' : 'border border-[#6a737c]'}">${question.answers || 0}</span> answers
+          </div>
+          <div>
+            <span>${question.views || 0}</span> views
+          </div>
+        </div>
+
+        <div>
+          <h3 class="text-[15px] sm:text-[17px] mb-1">
+            <a href="/questions/${question.id}" class="text-[#0074cc] hover:text-[#0a95ff]">${question.title}</a>
+          </h3>
+
+          <div class="text-[12px] sm:text-[13px] text-[#3b4045] mb-2">
+            ${question.content}
+          </div>
+
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
+            <div class="flex flex-wrap gap-1">
+              ${question.tags.map(tag => `
+                <a href="/questions/tagged/${tag}" class="tag hover:bg-[#d0e3f1]">${tag}</a>
+              `).join('')}
+            </div>
+
+            <div class="flex items-center text-[11px] sm:text-[12px]">
+              ${question.collective ? `
+                <a href="/collectives/${question.collective.slug}" class="hidden sm:flex items-center mr-2">
+                  <div class="w-4 h-4 bg-[#f1f2f3] flex items-center justify-center rounded mr-1">
+                    <span class="text-[10px] text-[#525960] font-bold">C</span>
+                  </div>
+                  <span class="text-[#0074cc]">${question.collective.name}</span>
+                </a>
+              ` : ''}
+
+              <div class="flex items-center">
+                <a href="/users/${question.user.name}" class="flex items-center">
+                  <img src="${question.user.image}" alt="${question.user.name}" class="w-4 h-4 rounded mr-1" />
+                  <span class="text-[#0074cc]">${question.user.name}</span>
+                </a>
+                <span class="text-[#6a737c] ml-1">
+                  <span class="font-bold">${question.user.reputation}</span>
+                </span>
+                <span class="text-[#6a737c] ml-1">asked ${question.timestamp}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    return template.content.firstElementChild;
+  }
+
+  // Function to connect to the SSE endpoint
+  function connectToSSE() {
+    const statusEl = document.getElementById('realtime-status');
+    const alertEl = document.getElementById('new-content-alert');
+    const questionsContainer = document.querySelector('.divide-y');
+
+    if (!statusEl || !alertEl || !questionsContainer) return;
+
+    // Show the real-time status indicator
+    statusEl.classList.remove('hidden');
+
+    // Keep track of new questions that haven't been displayed yet
+    const newQuestions = [];
+
+    // Connect to the SSE endpoint
+    const evtSource = new EventSource('/api/sse');
+
+    // Function to show new questions
+    function showNewQuestions() {
+      if (newQuestions.length === 0) return;
+
+      // Get the current scroll position
+      const scrollY = window.scrollY;
+
+      // Add all new questions to the top of the list
+      newQuestions.forEach(question => {
+        const questionEl = createQuestionElement(question);
+        questionsContainer.insertBefore(questionEl, questionsContainer.firstChild);
+      });
+
+      // Clear the new questions array
+      newQuestions.length = 0;
+
+      // Hide the alert
+      alertEl.classList.add('hidden');
+
+      // Update the question count
+      const countEl = document.querySelector('.text-[13px].text-[#6a737c].mb-4');
+      if (countEl) {
+        const currentCount = parseInt(countEl.textContent.replace(/[^0-9]/g, '')) || 0;
+        countEl.textContent = `${currentCount + newQuestions.length} questions`;
+      }
+    }
+
+    // Listen for messages from the server
+    evtSource.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+
+        // Handle new questions
+        if (data.type === 'question') {
+          // Add to the new questions array
+          newQuestions.push(data.data);
+
+          // Show the alert if not already visible
+          if (newQuestions.length > 0 && alertEl.classList.contains('hidden')) {
+            alertEl.classList.remove('hidden');
+            alertEl.textContent = `${newQuestions.length} new question${newQuestions.length > 1 ? 's' : ''} available. Click to view.`;
+          } else if (newQuestions.length > 0) {
+            alertEl.textContent = `${newQuestions.length} new question${newQuestions.length > 1 ? 's' : ''} available. Click to view.`;
+          }
+        }
+
+        // Handle connection status
+        if (data.type === 'connected') {
+          console.log('Connected to real-time updates:', data.clientId);
+        }
+      } catch (e) {
+        console.error('Error processing SSE message:', e);
+      }
+    };
+
+    // Handle connection errors
+    evtSource.onerror = (error) => {
+      console.error('SSE connection error:', error);
+      statusEl.querySelector('.h-2').classList.remove('bg-green-500');
+      statusEl.querySelector('.h-2').classList.add('bg-red-500');
+      statusEl.querySelector('span:last-child').textContent = 'Connection error. Reconnecting...';
+    };
+
+    // Clicking on the alert shows the new questions
+    alertEl.addEventListener('click', showNewQuestions);
+
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', () => {
+      evtSource.close();
+    });
+  }
+
+  // Start the connection when the DOM is loaded
+  document.addEventListener('DOMContentLoaded', connectToSSE);
+</script>

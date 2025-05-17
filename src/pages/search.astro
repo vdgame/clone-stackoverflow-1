@@ -1,0 +1,636 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Sidebar from '../components/Sidebar.astro';
+import Footer from '../components/Footer.astro';
+import RightSidebar from '../components/RightSidebar.astro';
+import ReputationCard from '../components/ReputationCard.astro';
+
+// For SSR rather than static site generation
+export const prerender = false;
+
+// Get search query and filters from URL
+const searchQuery = Astro.url.searchParams.get('q') || '';
+const sortBy = Astro.url.searchParams.get('sort') || 'relevance';
+const tags = Astro.url.searchParams.getAll('tags[]');
+const users = Astro.url.searchParams.getAll('users[]');
+const answeredStatus = Astro.url.searchParams.get('answered') || 'any';
+const dateRange = Astro.url.searchParams.get('dateRange') || 'any';
+const minVotes = parseInt(Astro.url.searchParams.get('minVotes') || '0');
+const contentType = Astro.url.searchParams.get('contentType') || 'all';
+const page = parseInt(Astro.url.searchParams.get('page') || '1');
+
+// Mock search results (in a real app, this would come from the API)
+// For demo purposes, we'll use pre-defined data
+// In a production app, we would fetch from the API endpoint
+let searchResults = [];
+let filterOptions = {
+  sortBy: [
+    { value: "relevance", label: "Relevance" },
+    { value: "newest", label: "Newest" },
+    { value: "votes", label: "Votes" },
+    { value: "active", label: "Active" }
+  ],
+  tags: [
+    { value: "qt", count: 5 },
+    { value: "qtwebengine", count: 5 },
+    { value: "build", count: 1 },
+    { value: "compiler-errors", count: 1 },
+    { value: "continuous-integration", count: 1 },
+    { value: "qml", count: 1 },
+    { value: "pdf", count: 1 },
+    { value: "macos", count: 1 },
+    { value: "freeze", count: 1 },
+    { value: "audio", count: 1 },
+    { value: "embedded-linux", count: 1 },
+    { value: "codec", count: 1 },
+    { value: "h264", count: 1 },
+    { value: "crash", count: 1 },
+    { value: "reactjs", count: 1 },
+    { value: "hooks", count: 1 },
+    { value: "useeffect", count: 1 },
+    { value: "javascript", count: 1 },
+    { value: "functional-components", count: 1 },
+    { value: "nextjs", count: 1 },
+    { value: "authentication", count: 1 },
+    { value: "jwt", count: 1 },
+    { value: "react", count: 1 },
+    { value: "api-routes", count: 1 }
+  ],
+  users: [
+    { value: "admbrill", count: 1 },
+    { value: "QtDeveloper", count: 1 },
+    { value: "MacQtUser", count: 1 },
+    { value: "LinuxEmbedded", count: 1 },
+    { value: "CodeCompiler", count: 1 },
+    { value: "ReactNewbie", count: 1 },
+    { value: "NextJSDev", count: 1 }
+  ],
+  answered: [
+    { value: "any", label: "Any answers" },
+    { value: "yes", label: "Has answers" },
+    { value: "accepted", label: "Has accepted answer" },
+    { value: "no", label: "No answers" }
+  ],
+  dateRange: [
+    { value: "any", label: "All time" },
+    { value: "day", label: "Last 24 hours" },
+    { value: "week", label: "Last week" },
+    { value: "month", label: "Last month" },
+    { value: "year", label: "Last year" }
+  ]
+};
+
+let totalCount = 0;
+let totalPages = 1;
+
+// If search query exists, simulate fetching results
+if (searchQuery) {
+  // In a real application, we would call the API here
+  searchResults = [
+    {
+      id: 1,
+      title: "How to compile Qt webengine (6.8.3) on Ubuntu with proprietary codecs using Cmake and Github Actions",
+      excerpt: "I have a lot of trouble to build Qt WebEngine from git using cmake on Ubuntu to enable webengine proprietary codecs. Because it's not so convenient, I use Github Actions to build Qt WebEngine...",
+      votes: 15,
+      answers: 2,
+      isAccepted: true,
+      views: 127,
+      askedTime: "Oct 15, 2023 at 15:32",
+      user: {
+        name: "admbrill",
+        reputation: 1243
+      },
+      tags: ["qt", "build", "compiler-errors", "continuous-integration", "qtwebengine"]
+    },
+    {
+      id: 2,
+      title: "Qt QML WebEngine PDF viewer displaying blank page",
+      excerpt: "I'm trying to use the WebEngine PDF viewer from QML, but I'm getting a blank page. I've tried the code example from the Qt documentation, but it's not working. I'm running Qt 6.5.2 on Ubuntu 22.04...",
+      votes: 7,
+      answers: 1,
+      isAccepted: false,
+      views: 89,
+      askedTime: "Dec 2, 2023 at 9:15",
+      user: {
+        name: "QtDeveloper",
+        reputation: 512
+      },
+      tags: ["qt", "qml", "pdf", "webengine", "qtwebengine"]
+    }
+  ];
+
+  if (tags.includes('reactjs')) {
+    searchResults.push({
+      id: 6,
+      title: "Understanding React's useEffect cleanup function",
+      excerpt: "I'm trying to understand how the cleanup function in useEffect works. Specifically, when should I use it and what are the common patterns for cleaning up resources or event listeners?",
+      votes: 42,
+      answers: 3,
+      isAccepted: true,
+      views: 543,
+      askedTime: "Sep 12, 2023 at 14:23",
+      user: {
+        name: "ReactNewbie",
+        reputation: 752
+      },
+      tags: ["reactjs", "hooks", "useeffect", "javascript", "functional-components"]
+    });
+  }
+
+  if (tags.includes('nextjs')) {
+    searchResults.push({
+      id: 7,
+      title: "How to handle authentication with JWT in a Next.js application",
+      excerpt: "I'm building a Next.js application that needs user authentication. I want to use JWT tokens for auth, but I'm not sure about the best way to handle token storage, refresh tokens, and protected routes.",
+      votes: 28,
+      answers: 4,
+      isAccepted: true,
+      views: 319,
+      askedTime: "Nov 1, 2023 at 10:15",
+      user: {
+        name: "NextJSDev",
+        reputation: 1843
+      },
+      tags: ["nextjs", "authentication", "jwt", "react", "api-routes"]
+    });
+  }
+
+  totalCount = searchResults.length;
+  totalPages = Math.ceil(totalCount / 10);
+}
+
+// Format date for display
+const formatDate = (dateString) => {
+  const now = new Date();
+  const date = new Date(dateString);
+
+  // Format: "Oct 15, 2023 at 15:32"
+  return date.toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: 'numeric',
+    hour12: false
+  }).replace(',', ' at');
+};
+---
+
+<Layout title={`Search Results for "${searchQuery}" - Stack Overflow`}>
+  <Header />
+
+  <div class="flex flex-col md:flex-row">
+    <!-- Sidebar is hidden on mobile, visible on md screens and up -->
+    <div class="hidden md:block">
+      <Sidebar />
+    </div>
+
+    <main class="flex-1 p-4 md:p-6">
+      <h1 class="text-xl sm:text-2xl font-normal mb-4">
+        Search Results for "{searchQuery}"
+      </h1>
+
+      <!-- Advanced search tips -->
+      <div class="mb-6 bg-[#f8f9f9] dark:bg-gray-800 border border-[#e3e6e8] dark:border-gray-700 rounded-md p-4">
+        <h3 class="font-bold mb-2">Advanced Search Tips</h3>
+        <ul class="text-sm space-y-1 list-disc pl-5">
+          <li><code class="bg-[#e3e6e8] dark:bg-gray-700 px-1 rounded">[tag]</code> search within a tag</li>
+          <li><code class="bg-[#e3e6e8] dark:bg-gray-700 px-1 rounded">user:1234</code> search by author</li>
+          <li><code class="bg-[#e3e6e8] dark:bg-gray-700 px-1 rounded">"exact phrase"</code> exact phrase</li>
+          <li><code class="bg-[#e3e6e8] dark:bg-gray-700 px-1 rounded">code:"function example"</code> code within quotation marks</li>
+          <li><code class="bg-[#e3e6e8] dark:bg-gray-700 px-1 rounded">answers:0</code> unanswered questions</li>
+        </ul>
+        <a href="#" class="text-sm text-[#0074cc] dark:text-[#6cbbf7] hover:text-[#0a95ff] dark:hover:text-[#89c4ff] mt-2 inline-block">More search options</a>
+      </div>
+
+      <div class="flex flex-col lg:flex-row gap-6">
+        <!-- Search sidebar/filter (becomes a dropdown on mobile) -->
+        <div class="lg:w-64 flex-shrink-0">
+          <!-- Mobile filter dropdown -->
+          <div class="lg:hidden mb-4">
+            <button id="mobile-filter-button" class="w-full flex items-center justify-between p-2 border border-[#e3e6e8] dark:border-gray-700 rounded bg-white dark:bg-gray-800">
+              <span>Filter options</span>
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor">
+                <path d="M4 7h10l-5 5-5-5Z"></path>
+              </svg>
+            </button>
+          </div>
+
+          <div id="filter-content" class="hidden lg:block">
+            <form id="search-filters-form" action="/search" method="get">
+              <!-- Hidden input for search query -->
+              <input type="hidden" name="q" value={searchQuery} />
+
+              <div class="mb-6 bg-white dark:bg-gray-900 border border-[#e3e6e8] dark:border-gray-700 rounded-md overflow-hidden">
+                <div class="p-3 bg-[#f8f9f9] dark:bg-gray-800 border-b border-[#e3e6e8] dark:border-gray-700">
+                  <div class="text-sm font-bold">Filter by</div>
+                </div>
+
+                <div class="p-3 border-b border-[#e3e6e8] dark:border-gray-700">
+                  <div class="text-sm font-bold mb-2">Sort by</div>
+                  <div class="flex flex-col">
+                    {filterOptions.sortBy.map(option => (
+                      <label class="flex items-center mb-1">
+                        <input type="radio" name="sort" value={option.value} class="mr-2" checked={option.value === sortBy} />
+                        <span class="text-sm">{option.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                <div class="p-3 border-b border-[#e3e6e8] dark:border-gray-700">
+                  <div class="text-sm font-bold mb-2">Time Period</div>
+                  <div class="flex flex-col">
+                    {filterOptions.dateRange.map(option => (
+                      <label class="flex items-center mb-1">
+                        <input type="radio" name="dateRange" value={option.value} class="mr-2" checked={option.value === dateRange} />
+                        <span class="text-sm">{option.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                <div class="p-3 border-b border-[#e3e6e8] dark:border-gray-700">
+                  <div class="text-sm font-bold mb-2">Minimum votes</div>
+                  <div class="flex flex-col">
+                    <input
+                      type="number"
+                      name="minVotes"
+                      min="0"
+                      max="1000"
+                      value={minVotes}
+                      class="w-full p-2 border border-[#babfc4] dark:border-gray-600 dark:bg-gray-800 rounded"
+                    />
+                  </div>
+                </div>
+
+                <div class="p-3 border-b border-[#e3e6e8] dark:border-gray-700">
+                  <div class="text-sm font-bold mb-2">Has</div>
+                  <div class="flex flex-col">
+                    {filterOptions.answered.map(option => (
+                      <label class="flex items-center mb-1">
+                        <input type="radio" name="answered" value={option.value} class="mr-2" checked={option.value === answeredStatus} />
+                        <span class="text-sm">{option.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                <div class="p-3 border-b border-[#e3e6e8] dark:border-gray-700">
+                  <div class="text-sm font-bold mb-2">Tags</div>
+                  <div class="flex flex-col max-h-60 overflow-y-auto">
+                    <div class="mb-2">
+                      <input
+                        type="text"
+                        id="tag-filter"
+                        placeholder="Filter tags..."
+                        class="w-full p-2 text-sm border border-[#babfc4] dark:border-gray-600 dark:bg-gray-800 rounded"
+                      />
+                    </div>
+                    <div id="tags-container">
+                      {filterOptions.tags.slice(0, 10).map(tag => (
+                        <label class="flex items-center mb-1 tag-item">
+                          <input
+                            type="checkbox"
+                            name="tags[]"
+                            value={tag.value}
+                            class="mr-2"
+                            checked={tags.includes(tag.value)}
+                          />
+                          <span class="text-sm">{tag.value}</span>
+                          <span class="text-xs text-[#6a737c] dark:text-gray-400 ml-auto">&times; {tag.count}</span>
+                        </label>
+                      ))}
+                    </div>
+                    <button type="button" id="show-more-tags" class="text-sm text-[#0074cc] dark:text-[#6cbbf7] hover:text-[#0a95ff] dark:hover:text-[#89c4ff] mt-1">
+                      more tags
+                    </button>
+                  </div>
+                </div>
+
+                <div class="p-3">
+                  <div class="text-sm font-bold mb-2">Users</div>
+                  <div class="flex flex-col max-h-40 overflow-y-auto">
+                    <div class="mb-2">
+                      <input
+                        type="text"
+                        id="user-filter"
+                        placeholder="Filter users..."
+                        class="w-full p-2 text-sm border border-[#babfc4] dark:border-gray-600 dark:bg-gray-800 rounded"
+                      />
+                    </div>
+                    <div id="users-container">
+                      {filterOptions.users.map(user => (
+                        <label class="flex items-center mb-1 user-item">
+                          <input
+                            type="checkbox"
+                            name="users[]"
+                            value={user.value}
+                            class="mr-2"
+                            checked={users.includes(user.value)}
+                          />
+                          <span class="text-sm">{user.value}</span>
+                          <span class="text-xs text-[#6a737c] dark:text-gray-400 ml-auto">&times; {user.count}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex justify-between mb-6">
+                <button
+                  type="submit"
+                  class="btn-primary"
+                >
+                  Apply Filters
+                </button>
+                <button
+                  type="button"
+                  id="reset-filters"
+                  class="btn-secondary"
+                >
+                  Reset
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Search results -->
+        <div class="flex-1">
+          <div class="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <div class="mb-2 sm:mb-0 text-sm text-[#6a737c] dark:text-gray-400">
+              {totalCount} results
+            </div>
+
+            <div class="flex items-center">
+              <div class="mr-2 text-sm">Content: </div>
+              <select name="contentType" id="content-type-select" class="py-1 px-2 border border-[#babfc4] dark:border-gray-600 dark:bg-gray-800 rounded focus:border-[#6bbbf7] focus:outline-none">
+                <option value="all" selected={contentType === 'all'}>All</option>
+                <option value="questions" selected={contentType === 'questions'}>Questions</option>
+                <option value="answers" selected={contentType === 'answers'}>Answers</option>
+                <option value="users" selected={contentType === 'users'}>Users</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Results list -->
+          {searchResults.length > 0 ? (
+            <div class="divide-y border-t border-b dark:divide-gray-700 dark:border-gray-700">
+              {searchResults.map(result => (
+                <div class="py-3">
+                  <div class="grid grid-cols-[auto_1fr] sm:gap-4 gap-2">
+                    <!-- Stats column -->
+                    <div class="flex flex-col items-end text-[13px] text-[#6a737c] dark:text-gray-400 w-[50px] sm:w-[60px]">
+                      <div class="mb-1">
+                        <span class={`font-medium ${result.votes < 0 ? 'text-[#d1383d] dark:text-red-400' : result.votes > 0 ? 'text-[#3d8f58] dark:text-green-400' : ''}`}>
+                          {result.votes}
+                        </span> votes
+                      </div>
+                      <div class="mb-1">
+                        <span class={`px-1.5 py-0.5 rounded ${result.answers > 0 ? (result.isAccepted ? 'bg-[#5eba7d] text-white' : 'bg-[#0074cc] text-white') : 'border border-[#6a737c] dark:border-gray-500'}`}>
+                          {result.answers}
+                        </span> answers
+                      </div>
+                      <div>
+                        <span>{result.views}</span> views
+                      </div>
+                    </div>
+
+                    <!-- Result content -->
+                    <div>
+                      <h2 class="text-[15px] sm:text-[17px] mb-1">
+                        <a href={`/questions/${result.id}`} class="text-[#0074cc] dark:text-[#6cbbf7] hover:text-[#0a95ff] dark:hover:text-[#89c4ff]">{result.title}</a>
+                      </h2>
+
+                      <div class="text-[12px] sm:text-[13px] text-[#3b4045] dark:text-gray-300 mb-2">
+                        {result.excerpt}
+                      </div>
+
+                      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                        <div class="flex flex-wrap gap-1">
+                          {result.tags.map(tag => (
+                            <a href={`/search?q=[${tag}]`} class="tag hover:bg-[#d0e3f1] dark:hover:bg-[#243b52]">{tag}</a>
+                          ))}
+                        </div>
+
+                        <div class="flex items-center text-[11px] sm:text-[12px]">
+                          <div class="flex items-center">
+                            <a href={`/users/${result.user.name}`} class="text-[#0074cc] dark:text-[#6cbbf7]">{result.user.name}</a>
+                            <span class="text-[#6a737c] dark:text-gray-400 ml-1">
+                              <ReputationCard
+                                reputation={result.user.reputation}
+                                size="small"
+                              />
+                            </span>
+                            <span class="text-[#6a737c] dark:text-gray-400 ml-1">asked {result.askedTime}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : searchQuery ? (
+            <div class="bg-[#f8f9f9] dark:bg-gray-800 border border-[#e3e6e8] dark:border-gray-700 rounded-md p-6 text-center">
+              <div class="mb-4">
+                <svg class="w-12 h-12 mx-auto text-[#6a737c] dark:text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
+                </svg>
+              </div>
+              <h2 class="text-lg font-normal mb-2">We couldn't find anything for "{searchQuery}"</h2>
+              <p class="text-[15px] text-[#6a737c] dark:text-gray-400 mb-4">
+                Try different keywords or check your spelling.
+              </p>
+              <div class="flex flex-col sm:flex-row gap-2 justify-center">
+                <a href="/questions/ask" class="btn-primary">Ask your own question</a>
+                <a href="/questions" class="btn-secondary">Browse existing questions</a>
+              </div>
+            </div>
+          ) : (
+            <div class="bg-[#f8f9f9] dark:bg-gray-800 border border-[#e3e6e8] dark:border-gray-700 rounded-md p-6 text-center">
+              <div class="mb-4">
+                <svg class="w-12 h-12 mx-auto text-[#6a737c] dark:text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
+                </svg>
+              </div>
+              <h2 class="text-lg font-normal mb-2">Start your search</h2>
+              <p class="text-[15px] text-[#6a737c] dark:text-gray-400 mb-4">
+                Enter search terms above to find questions, answers, and more.
+              </p>
+            </div>
+          )}
+
+          <!-- Pagination -->
+          {totalPages > 1 && (
+            <div class="flex justify-between items-center mt-8">
+              <div>
+                <div class="flex items-center space-x-1">
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => i + 1).map(pageNum => (
+                    <a
+                      href={`/search?q=${searchQuery}&page=${pageNum}${sortBy ? `&sort=${sortBy}` : ''}${answeredStatus !== 'any' ? `&answered=${answeredStatus}` : ''}${dateRange !== 'any' ? `&dateRange=${dateRange}` : ''}${minVotes > 0 ? `&minVotes=${minVotes}` : ''}${contentType !== 'all' ? `&contentType=${contentType}` : ''}${tags.map(tag => `&tags[]=${tag}`).join('')}${users.map(user => `&users[]=${user}`).join('')}`}
+                      class={`w-8 h-8 flex items-center justify-center rounded border border-[#d6d9dc] dark:border-gray-700 ${pageNum === page ? 'bg-[#f48024] text-white' : 'hover:bg-[#f8f9f9] dark:hover:bg-gray-800 text-[#3b4045] dark:text-gray-300'}`}
+                    >
+                      {pageNum}
+                    </a>
+                  ))}
+                  {totalPages > 5 && <span class="px-2">...</span>}
+                  {page < totalPages && (
+                    <a
+                      href={`/search?q=${searchQuery}&page=${page + 1}${sortBy ? `&sort=${sortBy}` : ''}${answeredStatus !== 'any' ? `&answered=${answeredStatus}` : ''}${dateRange !== 'any' ? `&dateRange=${dateRange}` : ''}${minVotes > 0 ? `&minVotes=${minVotes}` : ''}${contentType !== 'all' ? `&contentType=${contentType}` : ''}${tags.map(tag => `&tags[]=${tag}`).join('')}${users.map(user => `&users[]=${user}`).join('')}`}
+                      class="w-auto h-8 px-2 flex items-center justify-center rounded border border-[#d6d9dc] dark:border-gray-700 hover:bg-[#f8f9f9] dark:hover:bg-gray-800 text-[#3b4045] dark:text-gray-300"
+                    >
+                      Next
+                    </a>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <Footer />
+
+  <script>
+    // Mobile filter toggle
+    document.addEventListener('DOMContentLoaded', () => {
+      const mobileFilterButton = document.getElementById('mobile-filter-button');
+      const filterContent = document.getElementById('filter-content');
+
+      if (mobileFilterButton && filterContent) {
+        mobileFilterButton.addEventListener('click', () => {
+          filterContent.classList.toggle('hidden');
+        });
+      }
+
+      // Show more tags button
+      const showMoreTagsButton = document.getElementById('show-more-tags');
+      const tagsContainer = document.getElementById('tags-container');
+
+      if (showMoreTagsButton && tagsContainer) {
+        let allTagsVisible = false;
+
+        showMoreTagsButton.addEventListener('click', () => {
+          // Toggle between showing all tags and showing just the first 10
+          allTagsVisible = !allTagsVisible;
+
+          if (allTagsVisible) {
+            // Show all tags
+            const tagItems = tagsContainer.querySelectorAll('.tag-item');
+            tagItems.forEach(item => item.classList.remove('hidden'));
+            showMoreTagsButton.textContent = 'show fewer tags';
+          } else {
+            // Show only first 10 tags
+            const tagItems = tagsContainer.querySelectorAll('.tag-item');
+            tagItems.forEach((item, index) => {
+              if (index >= 10) {
+                item.classList.add('hidden');
+              }
+            });
+            showMoreTagsButton.textContent = 'more tags';
+          }
+        });
+      }
+
+      // Tag filter functionality
+      const tagFilterInput = document.getElementById('tag-filter');
+
+      if (tagFilterInput && tagsContainer) {
+        tagFilterInput.addEventListener('input', () => {
+          const filterText = tagFilterInput.value.toLowerCase();
+          const tagItems = tagsContainer.querySelectorAll('.tag-item');
+
+          tagItems.forEach(item => {
+            const tagName = item.querySelector('span').textContent.toLowerCase();
+
+            if (tagName.includes(filterText)) {
+              item.classList.remove('hidden');
+            } else {
+              item.classList.add('hidden');
+            }
+          });
+        });
+      }
+
+      // User filter functionality
+      const userFilterInput = document.getElementById('user-filter');
+      const usersContainer = document.getElementById('users-container');
+
+      if (userFilterInput && usersContainer) {
+        userFilterInput.addEventListener('input', () => {
+          const filterText = userFilterInput.value.toLowerCase();
+          const userItems = usersContainer.querySelectorAll('.user-item');
+
+          userItems.forEach(item => {
+            const userName = item.querySelector('span').textContent.toLowerCase();
+
+            if (userName.includes(filterText)) {
+              item.classList.remove('hidden');
+            } else {
+              item.classList.add('hidden');
+            }
+          });
+        });
+      }
+
+      // Reset filters
+      const resetButton = document.getElementById('reset-filters');
+      const searchForm = document.getElementById('search-filters-form');
+
+      if (resetButton && searchForm) {
+        resetButton.addEventListener('click', () => {
+          // Get the search query from the form
+          const searchQuery = searchForm.querySelector('input[name="q"]').value;
+
+          // Redirect to the search page with just the search query
+          window.location.href = `/search?q=${encodeURIComponent(searchQuery)}`;
+        });
+      }
+
+      // Content type filter
+      const contentTypeSelect = document.getElementById('content-type-select');
+
+      if (contentTypeSelect) {
+        contentTypeSelect.addEventListener('change', () => {
+          // Get the current URL and parameters
+          const url = new URL(window.location.href);
+
+          // Update the contentType parameter
+          url.searchParams.set('contentType', contentTypeSelect.value);
+
+          // Redirect to the updated URL
+          window.location.href = url.toString();
+        });
+      }
+
+      // Add tooltips for advanced search syntax
+      const tips = document.querySelectorAll('code');
+
+      tips.forEach(tip => {
+        tip.title = 'Click to copy to search box';
+        tip.style.cursor = 'pointer';
+
+        tip.addEventListener('click', () => {
+          const searchParams = new URLSearchParams(window.location.search);
+          const currentQuery = searchParams.get('q') || '';
+          const tipText = tip.textContent;
+
+          // If the tip is already in the query, don't add it again
+          if (!currentQuery.includes(tipText)) {
+            searchParams.set('q', (currentQuery + ' ' + tipText).trim());
+            window.location.search = searchParams.toString();
+          }
+        });
+      });
+
+      // Real-time search using the API would be implemented here in a real app
+      // For a full implementation, we would make AJAX calls to the search endpoint
+    });
+  </script>
+</Layout>

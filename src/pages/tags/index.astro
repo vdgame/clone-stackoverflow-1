@@ -1,0 +1,165 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Header from '../../components/Header.astro';
+import Sidebar from '../../components/Sidebar.astro';
+import Footer from '../../components/Footer.astro';
+import RightSidebar from '../../components/RightSidebar.astro';
+
+// This page can be statically generated
+export const prerender = true;
+
+// Mock data for tags
+const tags = [
+  { name: "javascript", count: 2422153, description: "For questions about JavaScript, a programming language widely used for client-side web development as well as server-side with Node.js." },
+  { name: "python", count: 2115854, description: "Python is a multi-paradigm, dynamically typed, multipurpose programming language. It is designed to be quick to learn, understand, and use." },
+  { name: "java", count: 1879767, description: "Java is a high-level object-oriented programming language. Use this tag when you're having problems using or understanding the language itself." },
+  { name: "c#", count: 1616187, description: "C# (pronounced \"see sharp\") is a high-level, statically typed, multi-paradigm programming language developed by Microsoft." },
+  { name: "php", count: 1467584, description: "PHP is a widely used, open source, general-purpose, multi-paradigm, dynamically typed and interpreted scripting language designed for server-side web development." },
+  { name: "android", count: 1375107, description: "Android is Google's mobile operating system, used for programming or developing mobile devices." },
+  { name: "html", count: 1252711, description: "HTML (HyperText Markup Language) is the standard markup language used for creating web pages and web applications." },
+  { name: "jquery", count: 1049836, description: "jQuery is a JavaScript library designed to simplify HTML DOM tree traversal and manipulation." },
+  { name: "css", count: 1033065, description: "CSS (Cascading Style Sheets) is a representation style sheet language used for describing the look and formatting of HTML." },
+  { name: "reactjs", count: 951302, description: "React is a JavaScript library for building user interfaces. It uses a declarative, component-based paradigm." },
+  { name: "node.js", count: 832608, description: "Node.js is an event-based, non-blocking, asynchronous I/O runtime that uses Google's V8 JavaScript engine and libuv library." },
+  { name: "mysql", count: 711098, description: "MySQL is a free, open-source SQL database management system frequently used in web applications." },
+  { name: "sql", count: 686661, description: "SQL (Structured Query Language) is a language designed to manipulate and manage data in relational databases." },
+  { name: "typescript", count: 667410, description: "TypeScript is a typed superset of JavaScript that compiles to plain JavaScript." },
+  { name: "c++", count: 609223, description: "C++ is a general-purpose programming language, which has object-oriented, imperative, and generic programming features." },
+  { name: "swift", count: 587587, description: "Swift is a general-purpose programming language built using a modern approach to safety, performance, and software design patterns." },
+  { name: "postgresql", count: 557775, description: "PostgreSQL is an object-relational database management system (ORDBMS) with an emphasis on extensibility and standards-compliance." },
+  { name: "mongodb", count: 443542, description: "MongoDB is a cross-platform document-oriented NoSQL database program that uses JSON-like documents with optional schemas." },
+  { name: "angular", count: 395686, description: "Angular is a TypeScript-based open-source web application framework led by the Google." },
+  { name: "vue.js", count: 380106, description: "Vue.js is an open-source Model–view–viewmodel JavaScript framework for building user interfaces and single-page applications." },
+  { name: "git", count: 354935, description: "Git is a distributed version control system designed to handle everything from small to very large projects with speed and efficiency." },
+  { name: "go", count: 345874, description: "Go is an open source programming language designed to build fast, reliable, and efficient software at scale." },
+  { name: "ruby", count: 270901, description: "Ruby is a dynamic, object-oriented programming language with a focus on simplicity and productivity." },
+  { name: "dart", count: 235643, description: "Dart is a client-optimized programming language for apps on multiple platforms." },
+  { name: "aws", count: 215432, description: "Amazon Web Services (AWS) is a collection of cloud computing services that provide an on-demand computing platform." },
+  { name: "docker", count: 210986, description: "Docker is a platform for developing, shipping, and running applications in containers." },
+  { name: "kotlin", count: 203541, description: "Kotlin is a statically-typed programming language that runs on the JVM and is fully interoperable with Java." },
+  { name: "laravel", count: 195743, description: "Laravel is a free, open-source PHP web framework used for the development of web applications." },
+  { name: "azure", count: 188975, description: "Microsoft Azure is a cloud computing service created by Microsoft for building, testing, deploying, and managing applications." },
+  { name: "flutter", count: 176542, description: "Flutter is Google's UI toolkit for building beautiful, natively compiled applications for mobile, web, and desktop from a single codebase." },
+];
+---
+
+<Layout title="Tags - Stack Overflow">
+  <Header />
+
+  <div class="flex flex-col md:flex-row">
+    <!-- Sidebar is hidden on mobile, visible on md screens and up -->
+    <div class="hidden md:block">
+      <Sidebar />
+    </div>
+
+    <main class="flex-1 p-4 md:p-6">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-4">
+        <h1 class="text-xl sm:text-2xl font-normal">Tags</h1>
+        <div class="flex gap-2">
+          <a href="/questions/ask" class="btn-primary">Ask Question</a>
+        </div>
+      </div>
+
+      <p class="text-[15px] text-[#3b4045] mb-6">
+        A tag is a keyword or label that categorizes your question with other, similar questions.
+        Using the right tags makes it easier for others to find and answer your question.
+      </p>
+
+      <!-- Tag search and filters -->
+      <div class="flex flex-col sm:flex-row gap-2 mb-6">
+        <div class="flex-grow relative">
+          <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+            <svg class="w-4 h-4 text-[#838c95]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+          </div>
+          <input
+            type="text"
+            placeholder="Filter by tag name"
+            class="w-full py-2 pl-10 pr-3 border border-[#babfc4] rounded focus:border-[#6bbbf7] focus:outline-none focus:shadow-[0_0_0_4px_rgba(0,116,204,0.15)]"
+          />
+        </div>
+        <select class="py-2 px-3 border border-[#babfc4] rounded focus:border-[#6bbbf7] focus:outline-none focus:shadow-[0_0_0_4px_rgba(0,116,204,0.15)]">
+          <option value="popular">Popular</option>
+          <option value="name">Name</option>
+          <option value="new">New</option>
+        </select>
+      </div>
+
+      <!-- Tags grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        {tags.map(tag => (
+          <div class="border border-[#e3e6e8] rounded-md p-4 flex flex-col hover:shadow-sm">
+            <div class="mb-2">
+              <a href={`/questions/tagged/${tag.name}`} class="tag hover:bg-[#d0e3f1] mb-2">{tag.name}</a>
+              <span class="text-[#6a737c] text-xs ml-1">&times; {tag.count.toLocaleString()}</span>
+            </div>
+            <p class="text-xs text-[#3b4045] flex-grow">{tag.description}</p>
+
+            <div class="mt-auto pt-2">
+              <div class="flex mt-2 text-xs justify-between">
+                <a href="#" class="text-[#0074cc] hover:text-[#0a95ff]">Learn more...</a>
+                <span class="text-[#6a737c]">
+                  {Math.floor(Math.random() * 20)} questions today, {Math.floor(Math.random() * 100)} this week
+                </span>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <!-- Pagination -->
+      <div class="flex flex-col sm:flex-row justify-between items-center mt-8">
+        <div class="mb-4 sm:mb-0">
+          <div class="flex items-center space-x-1">
+            <a href="#" class="w-8 h-8 flex items-center justify-center rounded border border-[#d6d9dc] bg-[#f48024] text-white">1</a>
+            <a href="#" class="w-8 h-8 flex items-center justify-center rounded border border-[#d6d9dc] hover:bg-[#f8f9f9] text-[#3b4045]">2</a>
+            <a href="#" class="w-8 h-8 flex items-center justify-center rounded border border-[#d6d9dc] hover:bg-[#f8f9f9] text-[#3b4045]">3</a>
+            <a href="#" class="w-8 h-8 flex items-center justify-center rounded border border-[#d6d9dc] hover:bg-[#f8f9f9] text-[#3b4045]">4</a>
+            <a href="#" class="w-8 h-8 flex items-center justify-center rounded border border-[#d6d9dc] hover:bg-[#f8f9f9] text-[#3b4045]">5</a>
+            <span class="px-2">...</span>
+            <a href="#" class="w-auto h-8 px-2 flex items-center justify-center rounded border border-[#d6d9dc] hover:bg-[#f8f9f9] text-[#3b4045]">548</a>
+            <a href="#" class="w-auto h-8 px-2 flex items-center justify-center rounded border border-[#d6d9dc] hover:bg-[#f8f9f9] text-[#3b4045]">Next</a>
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-2">
+          <button class="px-2 h-8 border border-[#d6d9dc] rounded hover:bg-[#f8f9f9] text-[13px] text-[#3b4045]">15</button>
+          <button class="px-2 h-8 border border-[#d6d9dc] rounded hover:bg-[#f8f9f9] text-[13px] text-[#3b4045]">30</button>
+          <button class="px-2 h-8 border border-[#d6d9dc] rounded hover:bg-[#f8f9f9] text-[13px] text-[#3b4045]">50</button>
+          <span class="text-[13px] text-[#3b4045]">per page</span>
+        </div>
+      </div>
+    </main>
+
+    <!-- Right sidebar is hidden on mobile and tablet, visible on lg screens and up -->
+    <div class="hidden lg:block">
+      <RightSidebar />
+    </div>
+  </div>
+
+  <Footer />
+
+  <script>
+    // Tag filter functionality
+    const tagFilter = document.querySelector('input[type="text"]');
+    const tagCards = document.querySelectorAll('.grid > div');
+
+    if (tagFilter) {
+      tagFilter.addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase();
+
+        tagCards.forEach(card => {
+          const tagName = card.querySelector('.tag').textContent.toLowerCase();
+          const tagDescription = card.querySelector('p').textContent.toLowerCase();
+
+          if (tagName.includes(searchTerm) || tagDescription.includes(searchTerm)) {
+            card.style.display = '';
+          } else {
+            card.style.display = 'none';
+          }
+        });
+      });
+    }
+  </script>
+</Layout>

@@ -1,0 +1,88 @@
+---
+interface Props {
+  id: string;
+  type: 'comment' | 'answer' | 'vote' | 'accept' | 'mention';
+  message: string;
+  link: string;
+  date: Date;
+  read: boolean;
+}
+
+const { id, type, message, link, date, read } = Astro.props;
+
+// Format date to relative time (e.g., "2 hours ago")
+const getRelativeTime = (date: Date) => {
+  const now = new Date();
+  const diffInMilliseconds = now.getTime() - date.getTime();
+
+  const diffInSeconds = Math.floor(diffInMilliseconds / 1000);
+  const diffInMinutes = Math.floor(diffInSeconds / 60);
+  const diffInHours = Math.floor(diffInMinutes / 60);
+  const diffInDays = Math.floor(diffInHours / 24);
+
+  if (diffInDays > 0) {
+    return `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago`;
+  } else if (diffInHours > 0) {
+    return `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
+  } else if (diffInMinutes > 0) {
+    return `${diffInMinutes} minute${diffInMinutes > 1 ? 's' : ''} ago`;
+  } else {
+    return 'just now';
+  }
+};
+
+// Get icon based on notification type
+const getIcon = (type: string) => {
+  switch(type) {
+    case 'comment':
+      return `<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M1 2.75C1 1.78 1.78 1 2.75 1h10.5c.97 0 1.75.78 1.75 1.75v8.5c0 .97-.78 1.75-1.75 1.75h-2.13l-2.55 2.53a.5.5 0 0 1-.72 0L5.38 13H2.75C1.78 13 1 12.22 1 11.25v-8.5Z"></path>
+              </svg>`;
+    case 'answer':
+      return `<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M8 14.57a6.53 6.53 0 1 1 0-13.06 6.53 6.53 0 0 1 0 13.06Zm0-5.32 2.37-2.36a.5.5 0 1 0-.7-.71L8 7.85 6.33 6.18a.5.5 0 0 0-.7.7L7.99 9.26Z"></path>
+              </svg>`;
+    case 'vote':
+      return `<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14Zm.7-10.7 2.83 2.83a1 1 0 0 1-1.42 1.41L8 6.41 5.88 8.54a1 1 0 0 1-1.41-1.41l2.83-2.82a.7.7 0 0 1 1 0Z"></path>
+              </svg>`;
+    case 'accept':
+      return `<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M7.59 11.38 13.77 5.1a.6.6 0 0 1 .86.02l.51.52a.6.6 0 0 1 0 .85l-7.63 7.53a.6.6 0 0 1-.85 0l-3.6-3.6a.6.6 0 0 1 0-.86l.52-.51a.6.6 0 0 1 .85 0l2.16 2.16Z"></path>
+              </svg>`;
+    case 'mention':
+      return `<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M8 1a7 7 0 0 0-5.78 10.95L1.2 14.7A.5.5 0 0 0 1.5 15h6.35a7 7 0 0 0 .15-14ZM9 7.8a1 1 0 1 1-2 .4 1 1 0 0 1 2-.4Zm2-1.01a1 1 0 1 1-2 .31 1 1 0 0 1 2-.3ZM8.5 5.26a.2.2 0 0 0-.39 0L7.5 8.02a.48.48 0 0 0 .93 0L8.5 5.25Z"></path>
+              </svg>`;
+    default:
+      return `<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16Zm0-9a1 1 0 0 1 1 1v3a1 1 0 1 1-2 0V8a1 1 0 0 1 1-1Zm0-3a1 1 0 1 1 0 2 1 1 0 0 1 0-2Z"></path>
+              </svg>`;
+  }
+};
+
+const colorMap = {
+  comment: 'text-blue-500 bg-blue-50',
+  answer: 'text-green-500 bg-green-50',
+  vote: 'text-orange-500 bg-orange-50',
+  accept: 'text-green-600 bg-green-50',
+  mention: 'text-purple-500 bg-purple-50'
+};
+
+const iconColor = colorMap[type] || 'text-gray-500 bg-gray-50';
+---
+
+<a
+  href={link}
+  class={`flex p-3 border-b border-gray-200 hover:bg-gray-50 transition-colors ${read ? 'bg-white' : 'bg-blue-50'} dark:hover:bg-gray-800 dark:border-gray-700 ${read ? 'dark:bg-gray-900' : 'dark:bg-gray-800'}`}
+  data-notification-id={id}
+>
+  <div class={`flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-full mr-3 ${iconColor}`}>
+    <Fragment set:html={getIcon(type)} />
+  </div>
+  <div class="flex-1 min-w-0">
+    <p class="text-sm text-gray-800 dark:text-gray-200">{message}</p>
+    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{getRelativeTime(date)}</p>
+  </div>
+  {!read && <div class="w-2 h-2 bg-blue-500 rounded-full self-start mt-2"></div>}
+</a>

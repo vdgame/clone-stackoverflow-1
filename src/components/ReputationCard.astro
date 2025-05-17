@@ -1,0 +1,113 @@
+---
+interface Props {
+  reputation: number;
+  badges?: {
+    gold: number;
+    silver: number;
+    bronze: number;
+  };
+  showDetails?: boolean;
+  size?: 'small' | 'medium' | 'large';
+  className?: string;
+}
+
+const {
+  reputation,
+  badges = { gold: 0, silver: 0, bronze: 0 },
+  showDetails = false,
+  size = 'medium',
+  className = ''
+} = Astro.props;
+
+// Format reputation number to be more readable
+// e.g., 1234 -> 1,234, 12345 -> 12.3k
+const formatReputation = (rep: number): string => {
+  if (rep >= 10000) {
+    return `${(rep / 1000).toFixed(1).replace(/\.0$/, '')}k`;
+  } else if (rep >= 1000) {
+    return `${(rep / 1000).toFixed(1).replace(/\.0$/, '')}k`;
+  } else {
+    return rep.toString();
+  }
+};
+
+// Size classes
+const sizeClasses = {
+  small: {
+    container: 'text-xs',
+    rep: 'font-bold',
+    badges: 'ml-1 gap-1',
+    badge: 'w-2 h-2',
+    count: 'text-[10px]'
+  },
+  medium: {
+    container: 'text-sm',
+    rep: 'font-bold',
+    badges: 'ml-2 gap-1.5',
+    badge: 'w-2.5 h-2.5',
+    count: 'text-[11px]'
+  },
+  large: {
+    container: 'text-base',
+    rep: 'font-bold',
+    badges: 'ml-2 gap-2',
+    badge: 'w-3 h-3',
+    count: 'text-xs'
+  }
+};
+
+// Generate CSS classes based on reputation value
+const getReputationColor = (rep: number): string => {
+  if (rep >= 20000) return 'text-[#fbbf24]'; // Gold color
+  if (rep >= 10000) return 'text-[#9ca3af]'; // Silver color
+  if (rep >= 1000) return 'text-[#d97706]';  // Bronze color
+  return '';
+};
+
+const repColor = getReputationColor(reputation);
+---
+
+<div class={`reputation-card flex items-center ${sizeClasses[size].container} ${className}`}>
+  <span class={`reputation ${sizeClasses[size].rep} ${repColor} dark:text-white`} title={`Reputation: ${reputation}`}>
+    {formatReputation(reputation)}
+  </span>
+
+  {(badges.gold > 0 || badges.silver > 0 || badges.bronze > 0) && (
+    <div class={`badges flex items-center ${sizeClasses[size].badges}`}>
+      {badges.gold > 0 && (
+        <div class="flex items-center" title={`${badges.gold} gold ${badges.gold === 1 ? 'badge' : 'badges'}`}>
+          <span class={`badge-gold ${sizeClasses[size].badge} rounded-full bg-[#fbbf24]`}></span>
+          <span class={`badge-count ${sizeClasses[size].count} ml-0.5 text-[#6a737c] dark:text-[#9fa6ad]`}>
+            {badges.gold}
+          </span>
+        </div>
+      )}
+
+      {badges.silver > 0 && (
+        <div class="flex items-center" title={`${badges.silver} silver ${badges.silver === 1 ? 'badge' : 'badges'}`}>
+          <span class={`badge-silver ${sizeClasses[size].badge} rounded-full bg-[#9ca3af]`}></span>
+          <span class={`badge-count ${sizeClasses[size].count} ml-0.5 text-[#6a737c] dark:text-[#9fa6ad]`}>
+            {badges.silver}
+          </span>
+        </div>
+      )}
+
+      {badges.bronze > 0 && (
+        <div class="flex items-center" title={`${badges.bronze} bronze ${badges.bronze === 1 ? 'badge' : 'badges'}`}>
+          <span class={`badge-bronze ${sizeClasses[size].badge} rounded-full bg-[#d97706]`}></span>
+          <span class={`badge-count ${sizeClasses[size].count} ml-0.5 text-[#6a737c] dark:text-[#9fa6ad]`}>
+            {badges.bronze}
+          </span>
+        </div>
+      )}
+    </div>
+  )}
+
+  {showDetails && (
+    <div class="rep-details ml-2">
+      <button class="text-[#0074cc] text-xs hover:text-[#0a95ff]">
+        <span>View reputation</span>
+      </button>
+    </div>
+  )}
+</div>

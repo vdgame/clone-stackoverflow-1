@@ -1,0 +1,30 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Header from '../../components/Header.astro';
+import Sidebar from '../../components/Sidebar.astro';
+import QuestionList from '../../components/QuestionList.astro';
+import RightSidebar from '../../components/RightSidebar.astro';
+import Footer from '../../components/Footer.astro';
+---
+
+<Layout title="Newest Questions - Stack Overflow">
+  <Header />
+
+  <div class="flex flex-col md:flex-row">
+    {/* Sidebar is hidden on mobile, visible on md screens and up */}
+    <div class="hidden md:block">
+      <Sidebar />
+    </div>
+
+    <main class="flex-1 p-4 md:p-6">
+      <QuestionList />
+    </main>
+
+    {/* Right sidebar is hidden on mobile and tablet, visible on lg screens and up */}
+    <div class="hidden lg:block">
+      <RightSidebar />
+    </div>
+  </div>
+
+  <Footer />
+</Layout>

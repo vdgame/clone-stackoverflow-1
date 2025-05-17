@@ -1,0 +1,202 @@
+---
+import { getSession } from 'auth-astro/server';
+
+const session = await getSession(Astro.request);
+const user = session?.user;
+
+// Initial placeholder notifications
+// Client-side JS will fetch the actual notifications from the API
+const notifications = [];
+const unreadCount = 0;
+---
+
+{user && (
+  <div class="relative" id="notification-container">
+    <button
+      id="notification-button"
+      class="flex items-center justify-center w-8 h-8 mx-2 text-[#525960] rounded hover:bg-[#f8f9f9] dark:text-gray-300 dark:hover:bg-gray-800"
+      aria-label="Notifications"
+    >
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path
+          d="M17.0952 12.3795L15.8333 10.9524V8.33333C15.8333 5.21667 13.6833 2.625 10.8333 2.05833V1.66667C10.8333 0.75 10.0833 0 9.16667 0C8.25 0 7.5 0.75 7.5 1.66667V2.05833C4.65 2.625 2.5 5.21667 2.5 8.33333V10.9524L1.23833 12.3795C0.816667 12.8571 1.15833 13.5933 1.77167 13.5933H16.5612C17.175 13.5933 17.5167 12.8571 17.0952 12.3795Z"
+          fill="currentColor"
+        />
+        <path
+          d="M8.10003 16.6666C8.41856 17.1087 8.96301 17.3808 9.54169 17.3808C10.1204 17.3808 10.6648 17.1087 10.9834 16.6666C10.9834 16.6666 8.10003 16.6666 8.10003 16.6666Z"
+          fill="currentColor"
+        />
+      </svg>
+      {unreadCount > 0 && (
+        <span
+          class="absolute top-0 right-1 bg-[#f48024] text-white text-[10px] font-bold rounded-full min-w-[15px] h-[15px] flex items-center justify-center"
+        >
+          {unreadCount}
+        </span>
+      )}
+    </button>
+
+    <!-- Dropdown menu (hidden by default) -->
+    <div
+      id="notification-dropdown"
+      class="hidden absolute right-0 mt-1 w-[350px] max-h-[500px] overflow-y-auto bg-white border border-[#e3e6e8] rounded shadow-md z-10 dark:bg-gray-800 dark:border-gray-700"
+    >
+      <div class="flex justify-between items-center p-3 border-b border-[#e3e6e8] dark:border-gray-700">
+        <h3 class="text-[15px] font-bold dark:text-white">Notifications</h3>
+        <a href="/user/notifications" class="text-[13px] text-[#0074cc] dark:text-blue-300">View all</a>
+      </div>
+
+      <div id="notifications-list" class="py-2">
+        {notifications.length === 0 ? (
+          <div class="p-4 text-center text-[#6a737c] dark:text-gray-400">
+            <p>You have no notifications at this time.</p>
+          </div>
+        ) : (
+          notifications.map((notification) => (
+            <a
+              href={notification.link}
+              class="block px-4 py-3 hover:bg-[#f8f9f9] border-b border-[#e3e6e8] last:border-0 dark:hover:bg-gray-700 dark:border-gray-700"
+            >
+              <div class="flex">
+                <div class="flex-shrink-0 mr-3">
+                  <img src={notification.userImage || "/img/default-avatar.png"} alt="" class="w-8 h-8 rounded" />
+                </div>
+                <div>
+                  <p class="text-[13px] text-[#3b4045] mb-1 dark:text-gray-300">
+                    <span class="font-bold">{notification.userName}</span> {notification.action}
+                  </p>
+                  <p class="text-[12px] text-[#6a737c] dark:text-gray-400">{notification.time}</p>
+                </div>
+              </div>
+            </a>
+          ))
+        )}
+      </div>
+    </div>
+  </div>
+)}
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const notificationButton = document.getElementById("notification-button");
+    const notificationDropdown = document.getElementById("notification-dropdown");
+
+    if (notificationButton && notificationDropdown) {
+      // Toggle dropdown when clicking the notification bell
+      notificationButton.addEventListener("click", (e) => {
+        e.stopPropagation();
+        notificationDropdown.classList.toggle("hidden");
+
+        // If dropdown is now visible, fetch notifications
+        if (!notificationDropdown.classList.contains("hidden")) {
+          fetchNotifications();
+        }
+      });
+
+      // Close dropdown when clicking outside
+      document.addEventListener("click", (e) => {
+        if (!notificationDropdown.contains(e.target) && e.target !== notificationButton) {
+          notificationDropdown.classList.add("hidden");
+        }
+      });
+    }
+
+    // Fetch notifications from API
+    async function fetchNotifications() {
+      try {
+        const response = await fetch("/api/notifications");
+        if (response.ok) {
+          const data = await response.json();
+          updateNotifications(data.notifications);
+          updateUnreadCount(data.unreadCount);
+        }
+      } catch (error) {
+        console.error("Error fetching notifications:", error);
+      }
+    }
+
+    // Update notifications in the DOM
+    function updateNotifications(notifications) {
+      const notificationsList = document.getElementById("notifications-list");
+      if (!notificationsList) return;
+
+      if (notifications.length === 0) {
+        notificationsList.innerHTML = `
+          <div class="p-4 text-center text-[#6a737c] dark:text-gray-400">
+            <p>You have no notifications at this time.</p>
+          </div>
+        `;
+        return;
+      }
+
+      let html = '';
+      notifications.forEach(notification => {
+        html += `
+          <a
+            href="${notification.link}"
+            class="block px-4 py-3 hover:bg-[#f8f9f9] border-b border-[#e3e6e8] last:border-0 dark:hover:bg-gray-700 dark:border-gray-700 ${notification.read ? '' : 'bg-[#f8f9f9] dark:bg-gray-700'}"
+            data-id="${notification.id}"
+          >
+            <div class="flex">
+              <div class="flex-shrink-0 mr-3">
+                <img src="${notification.userImage || "/img/default-avatar.png"}" alt="" class="w-8 h-8 rounded">
+              </div>
+              <div>
+                <p class="text-[13px] text-[#3b4045] mb-1 dark:text-gray-300">
+                  <span class="font-bold">${notification.userName}</span> ${notification.action}
+                </p>
+                <p class="text-[12px] text-[#6a737c] dark:text-gray-400">${notification.time}</p>
+              </div>
+            </div>
+          </a>
+        `;
+      });
+      notificationsList.innerHTML = html;
+
+      // Add click listeners to mark notifications as read
+      const notificationLinks = notificationsList.querySelectorAll('a[data-id]');
+      notificationLinks.forEach(link => {
+        link.addEventListener('click', async (e) => {
+          const notificationId = link.getAttribute('data-id');
+          try {
+            await fetch(`/api/notifications/${notificationId}`, {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ read: true })
+            });
+          } catch (error) {
+            console.error("Error marking notification as read:", error);
+          }
+        });
+      });
+    }
+
+    // Update unread count badge
+    function updateUnreadCount(count) {
+      const button = document.getElementById("notification-button");
+      if (!button) return;
+
+      // Remove existing badge if any
+      const existingBadge = button.querySelector('span');
+      if (existingBadge) {
+        existingBadge.remove();
+      }
+
+      // Add badge if count > 0
+      if (count > 0) {
+        const badge = document.createElement('span');
+        badge.className = "absolute top-0 right-1 bg-[#f48024] text-white text-[10px] font-bold rounded-full min-w-[15px] h-[15px] flex items-center justify-center";
+        badge.textContent = count > 9 ? '9+' : count;
+        button.appendChild(badge);
+      }
+    }
+
+    // Poll for new notifications every 30 seconds
+    setInterval(fetchNotifications, 30000);
+
+    // Initial fetch
+    fetchNotifications();
+  });
+</script>

@@ -1,0 +1,200 @@
+---
+// No props needed for this component
+---
+
+<div id="keyboard-shortcuts-button" class="fixed right-4 bottom-14 z-10">
+  <button
+    aria-label="Keyboard shortcuts"
+    title="Keyboard shortcuts (press ?)"
+    class="w-10 h-10 bg-white dark:bg-gray-800 rounded-full shadow-md flex items-center justify-center border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 7h4v4H3V7z"></path>
+      <path d="M17 7h4v4h-4V7z"></path>
+      <path d="M10 7h4v4h-4V7z"></path>
+      <path d="M3 14h4v4H3v-4z"></path>
+      <path d="M10 14h4v4h-4v-4z"></path>
+      <path d="M17 14h4v4h-4v-4z"></path>
+    </svg>
+  </button>
+</div>
+
+<div id="keyboard-shortcuts-modal" class="fixed inset-0 z-50 overflow-auto bg-black bg-opacity-60 hidden flex items-center justify-center p-4">
+  <div class="bg-white dark:bg-gray-900 rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-auto">
+    <div class="border-b border-gray-200 dark:border-gray-700 p-4 flex justify-between items-center">
+      <h2 class="text-xl font-bold">Keyboard Shortcuts</h2>
+      <button id="close-shortcuts-modal" class="p-1 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"></path>
+        </svg>
+      </button>
+    </div>
+
+    <div class="p-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Navigation Shortcuts -->
+        <div>
+          <h3 class="text-lg font-semibold mb-3 text-gray-900 dark:text-gray-100">Navigation</h3>
+          <ul class="space-y-2">
+            <li class="flex justify-between">
+              <span class="text-gray-700 dark:text-gray-300">Go to Home</span>
+              <span class="bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded font-mono text-sm">g h</span>
+            </li>
+            <li class="flex justify-between">
+              <span class="text-gray-700 dark:text-gray-300">Go to Questions</span>
+              <span class="bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded font-mono text-sm">g q</span>
+            </li>
+            <li class="flex justify-between">
+              <span class="text-gray-700 dark:text-gray-300">Go to Tags</span>
+              <span class="bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded font-mono text-sm">g t</span>
+            </li>
+            <li class="flex justify-between">
+              <span class="text-gray-700 dark:text-gray-300">Go to Users</span>
+              <span class="bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded font-mono text-sm">g u</span>
+            </li>
+            <li class="flex justify-between">
+              <span class="text-gray-700 dark:text-gray-300">Search</span>
+              <span class="bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded font-mono text-sm">/</span>
+            </li>
+            <li class="flex justify-between">
+              <span class="text-gray-700 dark:text-gray-300">Help</span>
+              <span class="bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded font-mono text-sm">?</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Question List Shortcuts -->
+        <div>
+          <h3 class="text-lg font-semibold mb-3 text-gray-900 dark:text-gray-100">Question List</h3>
+          <ul class="space-y-2">
+            <li class="flex justify-between">
+              <span class="text-gray-700 dark:text-gray-300">Next question</span>
+              <span class="bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded font-mono text-sm">j</span>
+            </li>
+            <li class="flex justify-between">
+              <span class="text-gray-700 dark:text-gray-300">Previous question</span>
+              <span class="bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded font-mono text-sm">k</span>
+            </li>
+            <li class="flex justify-between">
+              <span class="text-gray-700 dark:text-gray-300">Open question</span>
+              <span class="bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded font-mono text-sm">enter</span>
+            </li>
+            <li class="flex justify-between">
+              <span class="text-gray-700 dark:text-gray-300">New question</span>
+              <span class="bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded font-mono text-sm">a</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Question View Shortcuts -->
+        <div>
+          <h3 class="text-lg font-semibold mb-3 text-gray-900 dark:text-gray-100">Question View</h3>
+          <ul class="space-y-2">
+            <li class="flex justify-between">
+              <span class="text-gray-700 dark:text-gray-300">Next answer</span>
+              <span class="bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded font-mono text-sm">n</span>
+            </li>
+            <li class="flex justify-between">
+              <span class="text-gray-700 dark:text-gray-300">Previous answer</span>
+              <span class="bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded font-mono text-sm">p</span>
+            </li>
+            <li class="flex justify-between">
+              <span class="text-gray-700 dark:text-gray-300">Upvote</span>
+              <span class="bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded font-mono text-sm">u</span>
+            </li>
+            <li class="flex justify-between">
+              <span class="text-gray-700 dark:text-gray-300">Downvote</span>
+              <span class="bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded font-mono text-sm">d</span>
+            </li>
+            <li class="flex justify-between">
+              <span class="text-gray-700 dark:text-gray-300">Add comment</span>
+              <span class="bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded font-mono text-sm">c</span>
+            </li>
+            <li class="flex justify-between">
+              <span class="text-gray-700 dark:text-gray-300">Add answer</span>
+              <span class="bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded font-mono text-sm">a</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Other Shortcuts -->
+        <div>
+          <h3 class="text-lg font-semibold mb-3 text-gray-900 dark:text-gray-100">Editor</h3>
+          <ul class="space-y-2">
+            <li class="flex justify-between">
+              <span class="text-gray-700 dark:text-gray-300">Bold</span>
+              <span class="bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded font-mono text-sm">Ctrl+B</span>
+            </li>
+            <li class="flex justify-between">
+              <span class="text-gray-700 dark:text-gray-300">Italic</span>
+              <span class="bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded font-mono text-sm">Ctrl+I</span>
+            </li>
+            <li class="flex justify-between">
+              <span class="text-gray-700 dark:text-gray-300">Code</span>
+              <span class="bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded font-mono text-sm">Ctrl+K</span>
+            </li>
+            <li class="flex justify-between">
+              <span class="text-gray-700 dark:text-gray-300">Link</span>
+              <span class="bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded font-mono text-sm">Ctrl+L</span>
+            </li>
+            <li class="flex justify-between">
+              <span class="text-gray-700 dark:text-gray-300">Quote</span>
+              <span class="bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded font-mono text-sm">Ctrl+Q</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const shortcutsButton = document.getElementById('keyboard-shortcuts-button');
+    const shortcutsModal = document.getElementById('keyboard-shortcuts-modal');
+    const closeButton = document.getElementById('close-shortcuts-modal');
+
+    if (shortcutsButton && shortcutsModal && closeButton) {
+      // Open modal when button is clicked
+      shortcutsButton.addEventListener('click', () => {
+        shortcutsModal.classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
+      });
+
+      // Close modal when close button is clicked
+      closeButton.addEventListener('click', () => {
+        shortcutsModal.classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
+      });
+
+      // Close modal when clicking outside the content
+      shortcutsModal.addEventListener('click', (e) => {
+        if (e.target === shortcutsModal) {
+          shortcutsModal.classList.add('hidden');
+          document.body.classList.remove('overflow-hidden');
+        }
+      });
+
+      // Close modal when Escape key is pressed
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !shortcutsModal.classList.contains('hidden')) {
+          shortcutsModal.classList.add('hidden');
+          document.body.classList.remove('overflow-hidden');
+        }
+      });
+
+      // Toggle modal when ? key is pressed
+      document.addEventListener('keydown', (e) => {
+        if (e.key === '?' && !e.ctrlKey && !e.altKey && !e.metaKey) {
+          if (shortcutsModal.classList.contains('hidden')) {
+            shortcutsModal.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+          } else {
+            shortcutsModal.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+          }
+        }
+      });
+    }
+  });
+</script>

@@ -1,0 +1,1057 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Header from '../../components/Header.astro';
+import Sidebar from '../../components/Sidebar.astro';
+import Footer from '../../components/Footer.astro';
+import RightSidebar from '../../components/RightSidebar.astro';
+import CommentList from '../../components/CommentList.astro';
+import BookmarkButton from '../../components/BookmarkButton.astro';
+import VoteButton from '../../components/VoteButton.astro';
+import ReputationCard from '../../components/ReputationCard.astro';
+import { getSession } from 'auth-astro/server';
+
+// Mock question data (in a real app this would come from a database)
+export function getStaticPaths() {
+  // Generate pages for question IDs 1-5 (in a real app, this would fetch from a database)
+  return [1, 2, 3, 4, 5].map(id => ({
+    params: { id: id.toString() },
+    props: { questionId: id }
+  }));
+}
+
+const { id } = Astro.params;
+const { questionId } = Astro.props;
+
+// Check if the URL has a show=all parameter for comments
+const showAllComments = Astro.url.searchParams.get('show') === 'all';
+
+// Get the answer sort parameter from URL or default to 'votes'
+const answerSort = Astro.url.searchParams.get('sort') || 'votes';
+
+// Get the current session (in a real app)
+const session = await getSession(Astro.request);
+const isLoggedIn = !!session;
+
+// Mock bookmark state
+const isQuestionBookmarked = false;
+const questionBookmarkCount = 3;
+
+// This would normally come from a database
+const question = {
+  id: id,
+  title: "How to compile Qt webengine (6.8.3) on Ubuntu with proprietary codecs using Cmake and Github Actions",
+  body: `<p>I have a lot of trouble to build Qt WebEngine from git using cmake on Ubuntu to enable webengine proprietary codecs. Because it's not so convenient, I use Github Actions to build Qt WebEngine. But I can't find the right way to enable proprietary codecs.</p>
+
+  <p>I've tried with the following define:</p>
+
+  <pre><code>WEBENGINE_CONFIG+=use_proprietary_codecs</code></pre>
+
+  <p>But I got the following error:</p>
+
+  <pre><code>CMake Error at CMakeLists.txt:8 (find_package):
+  Found package configuration file:
+
+    /home/runner/work/MyProject/MyProject/build/Qt/lib/cmake/Qt6/Qt6Config.cmake
+
+  but it set Qt6_FOUND to FALSE so package "Qt6" is considered to be NOT
+  FOUND.  Reason given by package:
+
+  Qt requires the use_proprietary_codecs flag to be enabled if ffmpeg is
+  enabled. Check the Qt configuration parameters.
+  </code></pre>
+
+  <p>Can someone help me find the right cmake configuration to enable proprietary codecs when building Qt WebEngine from git?</p>`,
+  votes: 15,
+  views: 127,
+  created: "2 days ago",
+  modified: "yesterday",
+  user: {
+    name: "admbrill",
+    reputation: 1243,
+    image: "https://ext.same-assets.com/1773809462/1615090187.jpeg"
+  },
+  tags: ["qt", "build", "compiler-errors", "continuous-integration", "qtwebengine"],
+  collective: {
+    name: "CI/CD Collective",
+    slug: "ci-cd"
+  },
+  comments: [
+    {
+      id: 101,
+      content: "Have you tried setting <code>-DINPUT_use_proprietary_codecs=ON</code> directly in your CMake configuration?",
+      user: {
+        name: "QtEnthusiast",
+        reputation: 3541
+      },
+      createdAt: "yesterday",
+      upvotes: 3,
+      isUserUpvoted: false
+    },
+    {
+      id: 102,
+      content: "Can you share your complete GitHub Actions workflow? It might help identify other issues with the build setup.",
+      user: {
+        name: "GithubActionsExpert",
+        reputation: 17895
+      },
+      createdAt: "yesterday",
+      upvotes: 4,
+      isUserUpvoted: true
+    },
+    {
+      id: 103,
+      content: "Which version of Ubuntu are you using? Some older versions have issues with Qt WebEngine builds.",
+      user: {
+        name: "LinuxFan42",
+        reputation: 8762
+      },
+      createdAt: "yesterday",
+      upvotes: 1,
+      isUserUpvoted: false
+    },
+    {
+      id: 104,
+      content: "I encountered a similar issue last month. Make sure you have all the necessary dependencies installed: <code>libxcomposite-dev libxdamage-dev libxrandr-dev libxkbcommon-dev libdrm-dev libasound2-dev libpulse-dev libnss3-dev libcups2-dev</code>",
+      user: {
+        name: "DependencyWizard",
+        reputation: 5123
+      },
+      createdAt: "yesterday",
+      upvotes: 6,
+      isUserUpvoted: false
+    },
+    {
+      id: 105,
+      content: "The error message is pretty clear: Qt requires the use_proprietary_codecs flag to be enabled if ffmpeg is enabled. You need to either disable ffmpeg or enable proprietary codecs.",
+      user: {
+        name: "ErrorMessageReader",
+        reputation: 12498
+      },
+      createdAt: "2 days ago",
+      upvotes: 9,
+      isUserUpvoted: false
+    },
+    {
+      id: 106,
+      content: "Are you trying to build Qt from source or just your application that uses Qt? For the latter, you should use a pre-built Qt with the features you need.",
+      user: {
+        name: "QtMaintainer",
+        reputation: 29873
+      },
+      createdAt: "2 days ago",
+      upvotes: 4,
+      isUserUpvoted: false
+    }
+  ],
+  answers: [
+    {
+      id: 1,
+      body: `<p>For Qt 6.8.3, you need to use a different approach when building with CMake. Instead of <code>WEBENGINE_CONFIG+=use_proprietary_codecs</code>, you need to set this as a CMake option.</p>
+
+      <p>Try the following in your GitHub Actions workflow:</p>
+
+      <pre><code>cmake -DCMAKE_PREFIX_PATH=/path/to/qt \
+    -DINPUT_use_proprietary_codecs=ON \
+    -DINPUT_webengine_ffmpeg_build_gn=ON \
+    -G Ninja
+      </code></pre>
+
+      <p>The key here is using the <code>-DINPUT_use_proprietary_codecs=ON</code> flag when configuring with CMake.</p>
+
+      <p>If you're building a Qt application that uses WebEngine, you'll also need to make sure you're installing the necessary dependencies:</p>
+
+      <pre><code>sudo apt-get update && sudo apt-get install -y \
+    libxcomposite-dev \
+    libxdamage-dev \
+    libxrandr-dev \
+    libxkbcommon-dev \
+    libdrm-dev \
+    libasound2-dev \
+    libpulse-dev \
+    libnss3-dev \
+    libcups2-dev
+      </code></pre>
+
+      <p>This should resolve the error you're seeing. Let me know if you need more help!</p>`,
+      votes: 23,
+      created: "yesterday",
+      user: {
+        name: "QtExpert",
+        reputation: 34562,
+        image: "https://ext.same-assets.com/1773809462/1145680541.png"
+      },
+      accepted: true,
+      comments: [
+        {
+          id: 201,
+          content: "This worked perfectly, thank you! I was missing the <code>-DINPUT_webengine_ffmpeg_build_gn=ON</code> flag.",
+          user: {
+            name: "admbrill",
+            reputation: 1243
+          },
+          createdAt: "yesterday",
+          upvotes: 2,
+          isUserUpvoted: false
+        },
+        {
+          id: 202,
+          content: "Great answer! Is there any documentation on all the possible INPUT flags for Qt WebEngine?",
+          user: {
+            name: "DocFinder",
+            reputation: 3817
+          },
+          createdAt: "yesterday",
+          upvotes: 3,
+          isUserUpvoted: false
+        },
+        {
+          id: 203,
+          content: "I think you can also use <code>-DQT_FEATURE_webengine_proprietary_codecs=ON</code> as mentioned in another answer. Both approaches work.",
+          user: {
+            name: "AnotherQtUser",
+            reputation: 7219
+          },
+          createdAt: "20 hours ago",
+          upvotes: 1,
+          isUserUpvoted: false
+        }
+      ]
+    },
+    {
+      id: 2,
+      body: `<p>I had a similar issue recently. The error you're getting is because of a change in Qt 6.8.x with how the proprietary codecs flag is handled in CMake builds.</p>
+
+      <p>Instead of trying to use the old qmake-style flags, you need to use the proper CMake variables. Here's how I solved it:</p>
+
+      <pre><code>cmake .. \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DQT_FEATURE_webengine_proprietary_codecs=ON \
+    -DQT_FEATURE_webengine_ffmpeg=ON
+      </code></pre>
+
+      <p>The key difference is using <code>-DQT_FEATURE_webengine_proprietary_codecs=ON</code> instead of the INPUT variable the other answer suggests. Both might work, but this is the more direct approach according to the Qt documentation.</p>
+
+      <p>Make sure you also have all the necessary dependencies installed as mentioned in the other answer.</p>`,
+      votes: 7,
+      created: "14 hours ago",
+      user: {
+        name: "CMakePro",
+        reputation: 12654,
+        image: "https://ext.same-assets.com/1773809462/3823315869.png"
+      },
+      accepted: false,
+      comments: [
+        {
+          id: 301,
+          content: "I've tried this approach but it didn't work for me with Qt 6.8.3. The INPUT flags worked though.",
+          user: {
+            name: "QtyNewbie",
+            reputation: 489
+          },
+          createdAt: "10 hours ago",
+          upvotes: 0,
+          isUserUpvoted: false
+        },
+        {
+          id: 302,
+          content: "Interesting, I found this approach works better with the latest versions. Perhaps they changed something between minor releases?",
+          user: {
+            name: "CMakePro",
+            reputation: 12654
+          },
+          createdAt: "9 hours ago",
+          upvotes: 1,
+          isUserUpvoted: false
+        },
+        {
+          id: 303,
+          content: "The Qt documentation recommends using the QT_FEATURE_* variables for newer Qt versions, but they maintain backward compatibility with the INPUT_* variables for now.",
+          user: {
+            name: "QtDocReader",
+            reputation: 5623
+          },
+          createdAt: "7 hours ago",
+          upvotes: 2,
+          isUserUpvoted: false
+        }
+      ]
+    }
+  ]
+};
+---
+
+<Layout title={question.title + " - Stack Overflow"}>
+  <Header />
+
+  <div class="flex flex-col md:flex-row">
+    <!-- Sidebar is hidden on mobile, visible on md screens and up -->
+    <div class="hidden md:block">
+      <Sidebar />
+    </div>
+
+    <main class="flex-1 p-4 md:p-6">
+      <div class="flex flex-col lg:flex-row justify-between mb-4 gap-2">
+        <h1 class="text-xl sm:text-2xl font-normal">{question.title}</h1>
+        <div class="flex-shrink-0">
+          <a href="/questions/ask" class="btn-primary">Ask Question</a>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap text-[13px] text-[#6a737c] mb-4 gap-4">
+        <div>
+          Asked <span class="text-[#3b4045]">{question.created}</span>
+        </div>
+        <div>
+          Modified <span class="text-[#3b4045]">{question.modified}</span>
+        </div>
+        <div>
+          Viewed <span class="text-[#3b4045]">{question.views} times</span>
+        </div>
+      </div>
+
+      <div class="border-t border-[#e3e6e8] pt-4">
+        <!-- Question Section -->
+        <div class="grid grid-cols-[auto_1fr] gap-4">
+          <!-- Voting -->
+          <div class="flex flex-col items-center gap-2 mt-2">
+            <!-- Use the VoteButton component for question voting -->
+            <VoteButton
+              contentType="question"
+              contentId={question.id}
+              votes={question.votes}
+              userVote={null} <!-- In a real app, this would come from the user's vote history -->
+              size="large"
+            />
+
+            <!-- Use the BookmarkButton component -->
+            <BookmarkButton
+              questionId={question.id}
+              isBookmarked={isQuestionBookmarked}
+              bookmarkCount={questionBookmarkCount}
+              size="medium"
+              className="mt-2"
+            />
+
+            <button
+              class="text-[#6a737c] dark:text-[#9fa6ad] hover:text-[#0a95ff] dark:hover:text-[#89c4ff] mt-2"
+              aria-label="History"
+            >
+              <svg aria-hidden="true" width="19" height="18" viewBox="0 0 19 18">
+                <path d="M3 9a8 8 0 1 1 3.73 6.77L8.2 14.3A6 6 0 1 0 5 9l3.01-.01-4 4-4-4h3L3 9Zm7-4h1.01L11 9.36l3.22 2.1-.6.93L10 10V5Z" fill="currentColor"></path>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Question Body and Tags -->
+          <div>
+            <div class="question-body text-[15px] text-[#3b4045]" set:html={question.body}></div>
+
+            <div class="mt-6 mb-4 flex flex-wrap gap-1">
+              {question.tags.map((tag) => (
+                <a href={`/questions/tagged/${tag}`} class="tag hover:bg-[#d0e3f1]">{tag}</a>
+              ))}
+            </div>
+
+            <div class="flex justify-between flex-wrap mt-8 mb-4 pt-4 border-t border-[#e3e6e8]">
+              <div class="flex gap-2 mb-2">
+                <button class="text-[13px] text-[#6a737c] hover:text-[#0a95ff]">Share</button>
+                <button class="text-[13px] text-[#6a737c] hover:text-[#0a95ff]">Edit</button>
+                <button class="text-[13px] text-[#6a737c] hover:text-[#0a95ff]">Follow</button>
+              </div>
+
+              <div class="flex items-start sm:items-center bg-[#f8f9f9] p-2 sm:p-3 rounded w-full sm:w-auto">
+                <div class="flex-shrink-0 mr-2">
+                  <img src={question.user.image} alt={question.user.name} class="w-8 h-8 rounded" />
+                </div>
+                <div>
+                  <div class="text-[13px]">
+                    asked {question.created}
+                  </div>
+                  <div>
+                    <a href={`/users/${question.user.name}`} class="text-[#0074cc] text-[13px]">{question.user.name}</a>
+                  </div>
+                  <div class="text-[12px] text-[#6a737c]">
+                    <ReputationCard
+                      reputation={question.user.reputation}
+                      badges={{
+                        gold: 3,
+                        silver: 12,
+                        bronze: 31
+                      }}
+                      size="small"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Question Comments -->
+            <CommentList
+              comments={question.comments}
+              parentType="question"
+              parentId={question.id}
+              showAllComments={showAllComments}
+            />
+          </div>
+        </div>
+
+        <!-- Answers Section -->
+        <div class="mt-8">
+          <div class="flex flex-wrap items-center justify-between mb-4">
+            <h2 class="text-xl">{question.answers.length} Answers</h2>
+
+            <!-- Answer sorting options -->
+            <div class="relative inline-block text-left" id="answer-sort-dropdown-container">
+              <button id="answer-sort-dropdown-button" class="inline-flex justify-center items-center px-3 py-1.5 border border-[#e3e6e8] rounded text-sm text-[#6a737c] hover:bg-[#f8f9f9]">
+                <span id="current-answer-sort-display">
+                  {answerSort === 'newest' ? 'Newest' :
+                   answerSort === 'oldest' ? 'Oldest' :
+                   answerSort === 'votes' ? 'Highest score (default)' : 'Highest score (default)'}
+                </span>
+                <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </button>
+
+              <div id="answer-sort-dropdown-menu" class="hidden origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
+                <div class="py-1" role="menu" aria-orientation="vertical" aria-labelledby="answer-sort-dropdown-button">
+                  <a href={`/questions/${id}?sort=votes`} class={`${answerSort === 'votes' ? 'bg-gray-100 text-gray-900' : 'text-gray-700'} block px-4 py-2 text-sm hover:bg-gray-100`} role="menuitem">Highest score (default)</a>
+                  <a href={`/questions/${id}?sort=newest`} class={`${answerSort === 'newest' ? 'bg-gray-100 text-gray-900' : 'text-gray-700'} block px-4 py-2 text-sm hover:bg-gray-100`} role="menuitem">Newest</a>
+                  <a href={`/questions/${id}?sort=oldest`} class={`${answerSort === 'oldest' ? 'bg-gray-100 text-gray-900' : 'text-gray-700'} block px-4 py-2 text-sm hover:bg-gray-100`} role="menuitem">Oldest</a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {(() => {
+            // Sort answers based on answerSort
+            let sortedAnswers = [...question.answers];
+            if (answerSort === 'newest') {
+              sortedAnswers.sort((a, b) => {
+                // Assume created is a string like "yesterday", "14 hours ago", etc.
+                // For demo, just sort by id descending (newest first)
+                return b.id - a.id;
+              });
+            } else if (answerSort === 'oldest') {
+              sortedAnswers.sort((a, b) => a.id - b.id);
+            } else {
+              // Default: sort by votes descending, then accepted, then id
+              sortedAnswers.sort((a, b) => {
+                if (b.votes !== a.votes) return b.votes - a.votes;
+                if (b.accepted && !a.accepted) return 1;
+                if (a.accepted && !b.accepted) return -1;
+                return a.id - b.id;
+              });
+            }
+            return sortedAnswers.map((answer) => (
+              <div class={`border-t border-[#e3e6e8] pt-4 mb-6 ${answer.accepted ? 'accepted-answer' : ''}`}>
+                <div class="grid grid-cols-[auto_1fr] gap-4">
+                  <!-- Voting -->
+                  <div class="flex flex-col items-center gap-2 mt-2">
+                    <!-- Use the VoteButton component for answer voting -->
+                    <VoteButton
+                      contentType="answer"
+                      contentId={answer.id}
+                      votes={answer.votes}
+                      userVote={null} <!-- In a real app, this would come from the user's vote history -->
+                      size="large"
+                    />
+
+                    <!-- Bookmark button for answer -->
+                    <button class="text-[#6a737c] dark:text-[#9fa6ad] hover:text-[#0a95ff] dark:hover:text-[#89c4ff] mt-2" aria-label="Bookmark">
+                      <svg aria-hidden="true" width="18" height="18" viewBox="0 0 18 18">
+                        <path d="M3 17V3c0-1.1.9-2 2-2h8a2 2 0 0 1 2 2v14l-6-4-6 4Z" fill="currentColor"></path>
+                      </svg>
+                    </button>
+                    {answer.accepted && (
+                      <div class="mt-2 text-[#2e7d32]" title="Accepted answer">
+                        <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24">
+                          <path d="m9 16.2-3.5-3.5a1 1 0 0 0-1.41 1.41l4.2 4.2a1 1 0 0 0 1.41 0l9.2-9.2a1 1 0 1 0-1.41-1.42L9 16.2Z" fill="currentColor"></path>
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+
+                  <!-- Answer Body -->
+                  <div>
+                    <div class="answer-body text-[15px] text-[#3b4045]" set:html={answer.body}></div>
+
+                    <div class="flex justify-between flex-wrap mt-8 mb-4 pt-4 border-t border-[#e3e6e8]">
+                      <div class="flex gap-2 mb-2">
+                        <button class="text-[13px] text-[#6a737c] hover:text-[#0a95ff]">Share</button>
+                        <button class="text-[13px] text-[#6a737c] hover:text-[#0a95ff]">Edit</button>
+                        <button class="text-[13px] text-[#6a737c] hover:text-[#0a95ff]">Follow</button>
+                      </div>
+
+                      <div class="flex items-start sm:items-center bg-[#f8f9f9] p-2 sm:p-3 rounded w-full sm:w-auto">
+                        <div class="flex-shrink-0 mr-2">
+                          <img src={answer.user.image} alt={answer.user.name} class="w-8 h-8 rounded" />
+                        </div>
+                        <div>
+                          <div class="text-[13px]">
+                            answered {answer.created}
+                          </div>
+                          <div>
+                            <a href={`/users/${answer.user.name}`} class="text-[#0074cc] text-[13px]">{answer.user.name}</a>
+                          </div>
+                          <div class="text-[12px] text-[#6a737c]">
+                            <ReputationCard
+                              reputation={answer.user.reputation}
+                              badges={{
+                                gold: Math.floor(Math.random() * 5),  // Random badges for demo
+                                silver: Math.floor(Math.random() * 15),
+                                bronze: Math.floor(Math.random() * 30)
+                              }}
+                              size="small"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Answer Comments -->
+                    <CommentList
+                      comments={answer.comments}
+                      parentType="answer"
+                      parentId={answer.id}
+                      showAllComments={showAllComments}
+                    />
+                  </div>
+                </div>
+              </div>
+            ));
+          })()}
+
+          <!-- Your Answer Section -->
+          <div class="mt-8">
+            <h2 class="text-xl mb-4">Your Answer</h2>
+
+            <div class="border border-[#babfc4] rounded-t bg-[#f8f9f9] p-1 flex flex-wrap gap-1 mb-[-1px]">
+              <button type="button" class="p-1 hover:bg-[#e3e6e8] rounded" title="Bold">
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor" class="text-[#6a737c]">
+                  <path d="M4 4v2h1V4H4Zm2 0v10h1V4H6Zm6.9 3.5H10V6h2.6c.7 0 1.4.5 1.4 1.25h.1c0-.25-.1-.5-.2-.75h1c.2.3.3.5.1.75 0-.47-.1-1-.2-1.25.1-.62-.3-1.25-.9-1.5.7-.25 1.1-.88 1.1-1.5 0-1.27-1.1-2-2.3-2H9v1h1V2h1.5c.9 0 1.7.5 1.7 1.5 0 .77-.4 1.25-1.3 1.25h-2V6h2.2c.9 0 1.8.48 1.8 1.5 0 .4-.2.75-.5 1h.3Z"></path>
+                </svg>
+              </button>
+              <button type="button" class="p-1 hover:bg-[#e3e6e8] rounded" title="Italic">
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor" class="text-[#6a737c]">
+                  <path d="M4 3v1h1.3L8 14H6v1h5v-1H9.7L7 4h2V3H4Z"></path>
+                </svg>
+              </button>
+              <div class="border-r border-[#babfc4] h-6 mx-1"></div>
+              <button type="button" class="p-1 hover:bg-[#e3e6e8] rounded" title="Bulleted List">
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor" class="text-[#6a737c]">
+                  <path d="M5 4h9v1H5V4Zm0 4h9v1H5V8Zm0 4h9v1H5v-1Z"></path>
+                  <circle cx="3" cy="4.5" r="1"></circle>
+                  <circle cx="3" cy="8.5" r="1"></circle>
+                  <circle cx="3" cy="12.5" r="1"></circle>
+                </svg>
+              </button>
+              <button type="button" class="p-1 hover:bg-[#e3e6e8] rounded" title="Numbered List">
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor" class="text-[#6a737c]">
+                  <path d="M5 5h9v1H5V5Zm0 4h9v1H5V9Zm0 4h9v1H5v-1Z"></path>
+                  <path d="M3 5.5a.5.5 0 0 1-1 0V4h1v1.5ZM3.5 9h-2v-.5h1v-1H2V7h1.5v2ZM2 11.5v-1h2V11H2.5v.5h-1ZM2.5 13v.5H4v-1H2v.5h.5Z"></path>
+                </svg>
+              </button>
+              <div class="border-r border-[#babfc4] h-6 mx-1"></div>
+              <button type="button" class="p-1 hover:bg-[#e3e6e8] rounded" title="Code">
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor" class="text-[#6a737c]">
+                  <path d="M7 10.2H4.5V9.7H7V10.2Z"></path>
+                  <path d="M6.1 11H4.9C4.9 10.6 4.9 10.4 4.2 10.3L4 11L4.3 13.4C4.7 13.9 5.3 14 5.8 14C6.5 14 7.2 13.4 7.2 12.8C7.1 12.5 7.3 11.9 6.1 11ZM5.9 13.5C5.6 13.9 5.3 13.8 5.1 13.8C4.9 13.8 4.7 13.5 4.5 13.2C4.4 13 4.4 12.8 4.4 12.5C4.4 12.3 4.5 12 4.3 11.8C4.4 11.4 4.9 11.3 5.2 11.3C5.6 11.3 5.8 11.6 5.9 11.9C6.1 12.3 6.2 12.8 5.9 13.5Z"></path>
+                  <path d="M5 9H4V8H5V9Z"></path>
+                  <path d="M5 7H4V6H5V7Z"></path>
+                  <path d="M13 9V11.1L14 11C14.1 11.4 14.2 11.9 14.3 12.4L12.8 12.5C12.3 12.7 12.1 12.4 11.4 12.4C11.1 12.4 10.9 12.5 10.8 12.7C10.5 12.1 10.3 11.8 10 11.4C9.9 11.5 9.8 11.5 9.7 11.5C9.6 11.5 9.4 11.5 9.2 11.5C9.9 11.8 10.3 12.3 10.7 13.1C10.9 13.5 11.1 13.9 11.4 13.9C11.9 13.9 12.3 13.8 12.6 13.5C13.1 13.1 13.3 12.9 13.8 12.8C13.9 12.4 14 11.8 14 11.5L13 11.6V10.1L14 10C14 9.7 14 9.4 14 9.1L13 9Z"></path>
+                  <path d="M11.9 10.4C11.8 10.2 11.6 10.2 11.4 10L11.2 9.8C11.2 9.6 11.2 9.4 11.3 9.3C11.5 9.1 11.7 9 11.9 9C12.3 9 12.6 9.3 12.6 9.7C12.6 10.1 12.3 10.4 11.9 10.4Z"></path>
+                  <path d="M13.1 8.1C13 8.5 13 8.7 13.1 9.1H14.1C14 8.7 14 8.4 14.1 8H13.1V8.1Z"></path>
+                  <path d="M9.5 9.5C9.4 9.4 9.2 9.3 9 9.3C8.8 9.3 8.6 9.4 8.4 9.5L8 9.8L8.3 10.4L8.6 10.1C8.7 10 8.8 10 9 10C9.2 10 9.3 10 9.4 10.1L9.7 10.4L10 9.8L9.5 9.5Z"></path>
+                  <path d="M9 8H9.5V7H9C8.5 7 8.2 7.1 7.8 7.4L8.3 8.1C8.5 8 8.8 8 9 8Z"></path>
+                  <path d="M3 6H2V5H3V6Z"></path>
+                  <path d="M12 6H11V5H12V6Z"></path>
+                </svg>
+              </button>
+              <button type="button" class="p-1 hover:bg-[#e3e6e8] rounded" title="Code Block">
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor" class="text-[#6a737c]">
+                  <path d="M5 2h10a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1zm0 12h10V4H5v10zM3 5h1v1H3zm0 2h1v1H3zm0 2h1v1H3zm0 2h1v1H3zm0 2h1v1H3zm10.07-4.22 1.14-.93 1.14.93-.33-1.33 1.1-.97-1.46-.1-.45-1.28-.45 1.28-1.46.1 1.1.97-.33 1.33zm3.48-2.94-.95-.8.27 1.11 1.3.09-.97.8.28 1.11-1.07-.78-.91.8.2-1.11-1.13-.9 1.4-.08L5 3l.3-1zm-7.31 6.9.71-.7.7.7-.22-.9.72-.65-.93-.07-.27-.86-.28.86-.93.07.72.65-.22.9z"></path>
+                </svg>
+              </button>
+            </div>
+
+            <textarea
+              rows="12"
+              placeholder="Write your answer here. Include all the information needed to solve the problem."
+              class="w-full p-3 border border-[#babfc4] dark:border-[#393939] rounded-b focus:border-[#6bbbf7] dark:focus:border-[#6cbbf7] focus:outline-none focus:shadow-[0_0_0_4px_rgba(0,116,204,0.15)] dark:bg-[#2d2d2d] dark:text-[#e7e8eb]"
+            ></textarea>
+
+            <div class="mt-4">
+              <button type="submit" id="post-answer-btn" class="btn-primary py-2.5 px-4">Post Your Answer</button>
+            </div>
+
+            <div class="mt-8 text-[13px] text-[#3b4045]">
+              <p>Not the answer you're looking for? Browse other questions tagged
+                {question.tags.map((tag, index) => (
+                  <>
+                    <a href={`/questions/tagged/${tag}`} class="tag hover:bg-[#d0e3f1]">{tag}</a>
+                    {index < question.tags.length - 1 ? ' ' : ' '}
+                  </>
+                ))}
+                or <a href="/questions/ask" class="text-[#0074cc]">ask your own question</a>.
+              </p>
+            </div>
+
+            <!-- Real-time status indicator -->
+            <div id="realtime-status" class="fixed bottom-4 right-4 bg-[#f8f9f9] dark:bg-[#2d2d2d] border border-[#d6d9dc] dark:border-[#3d3d3d] rounded-lg shadow-md p-2 text-sm hidden z-50">
+              <div class="flex items-center">
+                <span class="h-2 w-2 rounded-full bg-green-500 mr-2 pulse-animation"></span>
+                <span>Real-time updates active</span>
+              </div>
+              <div id="new-answer-alert" class="mt-1 text-[#0074cc] dark:text-[#6cbbf7] hidden cursor-pointer">
+                New answers available. Click to view.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Right sidebar is hidden on mobile and tablet, visible on lg screens and up -->
+    <div class="hidden lg:block">
+      <RightSidebar />
+    </div>
+  </div>
+
+  <Footer />
+</Layout>
+
+<style>
+  .question-body p, .answer-body p {
+    margin-bottom: 1rem;
+  }
+
+  .question-body pre, .answer-body pre {
+    background-color: #f6f6f6;
+    padding: 12px;
+    border-radius: 5px;
+    overflow-x: auto;
+    margin-bottom: 1rem;
+  }
+
+  .question-body code, .answer-body code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    background-color: #f6f6f6;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-size: 0.9em;
+  }
+
+  .question-body pre code, .answer-body pre code {
+    padding: 0;
+    background-color: transparent;
+  }
+
+  .accepted-answer {
+    background-color: #f8fff8;
+    border-left: 4px solid #2e7d32;
+    padding-left: 12px;
+  }
+
+  .comment-content code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    background-color: #f6f6f6;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-size: 0.9em;
+  }
+
+  .dark .comment-content code {
+    background-color: #2d2d2d;
+  }
+
+  .dark .question-body pre, .dark .answer-body pre {
+    background-color: #2d2d2d;
+  }
+</style>
+
+<style>
+  .pulse-animation {
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.4;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+
+  .highlight-new {
+    animation: highlightFade 4s ease-out;
+  }
+
+  @keyframes highlightFade {
+    0% {
+      background-color: rgba(252, 233, 185, 0.5);
+    }
+    100% {
+      background-color: transparent;
+    }
+  }
+</style>
+
+<script>
+  // DOM-loaded event listener
+  document.addEventListener('DOMContentLoaded', () => {
+    // Setup vote buttons (like/dislike)
+    setupVoteButtons();
+
+    // Setup sorting dropdown for answers
+    setupAnswerSortDropdown();
+
+    // Setup real-time answer updates
+    setupRealTimeAnswers();
+
+    // Setup answer posting
+    setupAnswerPosting();
+  });
+
+  // Function to setup the answer sort dropdown
+  function setupAnswerSortDropdown() {
+    const sortDropdownButton = document.getElementById('answer-sort-dropdown-button');
+    const sortDropdownMenu = document.getElementById('answer-sort-dropdown-menu');
+
+    if (sortDropdownButton && sortDropdownMenu) {
+      sortDropdownButton.addEventListener('click', (e) => {
+        e.stopPropagation();
+        sortDropdownMenu.classList.toggle('hidden');
+      });
+
+      // Close the dropdown when clicking outside
+      document.addEventListener('click', (event) => {
+        if (!sortDropdownButton.contains(event.target) && !sortDropdownMenu.contains(event.target)) {
+          sortDropdownMenu.classList.add('hidden');
+        }
+      });
+    }
+  }
+
+  // Function to setup vote buttons
+  function setupVoteButtons() {
+    const voteButtons = document.querySelectorAll('.vote-button');
+
+    voteButtons.forEach(button => {
+      button.addEventListener('click', (e) => {
+        // In a real app, check if user is logged in first
+        const target = e.currentTarget;
+        const type = target.dataset.type;
+        const id = target.dataset.id;
+        const direction = target.dataset.vote;
+        const isLoggedIn = true; // Mock login status - in a real app, check from session
+
+        if (!isLoggedIn) {
+          window.location.href = '/users/login?returnUrl=' + encodeURIComponent(window.location.pathname);
+          return;
+        }
+
+        // Find the vote count element
+        const countElement = document.querySelector(`.vote-count[data-type="${type}"][data-id="${id}"]`);
+        if (!countElement) return;
+
+        // Get current vote count
+        let count = parseInt(countElement.textContent || '0');
+
+        // Check if already voted (in real app, this would be stored in DB/session)
+        const isUpvoted = target.classList.contains('text-[#0a95ff]');
+        const isDownvoted = target.classList.contains('text-[#d1383d]');
+
+        // Clear previous vote states
+        document.querySelectorAll(`.vote-button[data-type="${type}"][data-id="${id}"]`).forEach(btn => {
+          btn.classList.remove('text-[#0a95ff]', 'text-[#d1383d]', 'dark:text-[#89c4ff]', 'dark:text-[#f07377]');
+          btn.classList.add('text-[#6a737c]', 'dark:text-[#9fa6ad]');
+        });
+
+        // Apply new vote state
+        if (direction === 'up' && !isUpvoted) {
+          target.classList.remove('text-[#6a737c]', 'dark:text-[#9fa6ad]');
+          target.classList.add('text-[#0a95ff]', 'dark:text-[#89c4ff]');
+          count = isDownvoted ? count + 2 : count + 1;
+        } else if (direction === 'down' && !isDownvoted) {
+          target.classList.remove('text-[#6a737c]', 'dark:text-[#9fa6ad]');
+          target.classList.add('text-[#d1383d]', 'dark:text-[#f07377]');
+          count = isUpvoted ? count - 2 : count - 1;
+        } else {
+          // Clicking the same button again cancels the vote
+          count = direction === 'up' ? count - 1 : count + 1;
+        }
+
+        // Update vote count display
+        countElement.textContent = count.toString();
+
+        // In a real app, send vote to server
+        console.log(`Voted ${direction} on ${type} ${id}`);
+      });
+    });
+  }
+
+  // Function to create an answer element
+  function createAnswerElement(answer) {
+    // Create a template element
+    const template = document.createElement('template');
+
+    // HTML for the new answer with proper styling and structure
+    template.innerHTML = `
+      <div class="border-t border-[#e3e6e8] pt-4 mb-6 highlight-new">
+        <div class="grid grid-cols-[auto_1fr] gap-4">
+          <!-- Voting -->
+          <div class="flex flex-col items-center gap-2 mt-2">
+            <!-- Vote buttons -->
+            <button class="vote-button text-[#6a737c] dark:text-[#9fa6ad] hover:text-[#0a95ff] dark:hover:text-[#89c4ff]"
+                    data-type="answer" data-id="${answer.id}" data-vote="up" aria-label="Up vote">
+              <svg aria-hidden="true" width="36" height="36" viewBox="0 0 36 36">
+                <path d="M2 25h32L18 9 2 25Z" fill="currentColor"></path>
+              </svg>
+            </button>
+
+            <div class="vote-count text-[21px] text-center" data-type="answer" data-id="${answer.id}">
+              ${answer.votes || 0}
+            </div>
+
+            <button class="vote-button text-[#6a737c] dark:text-[#9fa6ad] hover:text-[#d1383d] dark:hover:text-[#f07377]"
+                    data-type="answer" data-id="${answer.id}" data-vote="down" aria-label="Down vote">
+              <svg aria-hidden="true" width="36" height="36" viewBox="0 0 36 36">
+                <path d="M2 11h32L18 27 2 11Z" fill="currentColor"></path>
+              </svg>
+            </button>
+
+            <!-- Bookmark button for answer -->
+            <button class="text-[#6a737c] dark:text-[#9fa6ad] hover:text-[#0a95ff] dark:hover:text-[#89c4ff] mt-2" aria-label="Bookmark">
+              <svg aria-hidden="true" width="18" height="18" viewBox="0 0 18 18">
+                <path d="M3 17V3c0-1.1.9-2 2-2h8a2 2 0 0 1 2 2v14l-6-4-6 4Z" fill="currentColor"></path>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Answer Body -->
+          <div>
+            <div class="answer-body text-[15px] text-[#3b4045]">${answer.body}</div>
+
+            <div class="flex justify-between flex-wrap mt-8 mb-4 pt-4 border-t border-[#e3e6e8]">
+              <div class="flex gap-2 mb-2">
+                <button class="text-[13px] text-[#6a737c] hover:text-[#0a95ff]">Share</button>
+                <button class="text-[13px] text-[#6a737c] hover:text-[#0a95ff]">Edit</button>
+                <button class="text-[13px] text-[#6a737c] hover:text-[#0a95ff]">Follow</button>
+              </div>
+
+              <div class="flex items-start sm:items-center bg-[#f8f9f9] p-2 sm:p-3 rounded w-full sm:w-auto">
+                <div class="flex-shrink-0 mr-2">
+                  <img src="${answer.user.image}" alt="${answer.user.name}" class="w-8 h-8 rounded" />
+                </div>
+                <div>
+                  <div class="text-[13px]">
+                    answered ${answer.created}
+                  </div>
+                  <div>
+                    <a href="/users/${answer.user.name}" class="text-[#0074cc] text-[13px]">${answer.user.name}</a>
+                  </div>
+                  <div class="text-[12px] text-[#6a737c]">
+                    <span class="reputation-display">
+                      <span class="font-bold">${answer.user.reputation}</span>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    return template.content.firstElementChild;
+  }
+
+  // Function to connect to the SSE endpoint for answers
+  function setupRealTimeAnswers() {
+    const questionId = window.location.pathname.split('/').pop();
+    if (!questionId) return;
+
+    const statusEl = document.getElementById('realtime-status');
+    const alertEl = document.getElementById('new-answer-alert');
+    // The answersContainer is the parent of all answer blocks
+    // After the sort bar, the answer blocks are rendered
+    // So, find the sort bar, then the next sibling is the answers container
+    const sortBar = document.querySelector('.mt-8 > .flex.flex-wrap.items-center.justify-between.mb-4');
+    let answersContainer = null;
+    if (sortBar) {
+      answersContainer = sortBar.nextElementSibling;
+    }
+    const answersCountEl = document.querySelector('.mt-8 > h2');
+
+    if (!statusEl || !alertEl || !answersContainer || !answersCountEl) return;
+
+    // Show the real-time status indicator
+    statusEl.classList.remove('hidden');
+
+    // Keep track of new answers that haven't been displayed yet
+    const newAnswers = [];
+
+    // Connect to the SSE endpoint
+    const evtSource = new EventSource('/api/sse');
+
+    // Get current sort method from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentSort = urlParams.get('sort') || 'votes';
+
+    // Function to show new answers
+    function showNewAnswers() {
+      if (newAnswers.length === 0) return;
+
+      // Add all new answers to the list, in the right position based on sort
+      newAnswers.forEach(answer => {
+        const answerEl = createAnswerElement(answer);
+
+        // For newest sort, add to the top
+        if (currentSort === 'newest') {
+          answersContainer.insertBefore(answerEl, answersContainer.firstChild);
+        } else {
+          // For other sorts, just append to bottom and let the user know they may need to resort
+          answersContainer.appendChild(answerEl);
+        }
+      });
+
+      // Update the answer count
+      if (answersCountEl) {
+        const currentCount = parseInt(answersCountEl.textContent.split(' ')[0]) || 0;
+        answersCountEl.textContent = `${currentCount + newAnswers.length} Answers`;
+      }
+
+      // Clear the new answers array
+      newAnswers.length = 0;
+
+      // Hide the alert
+      alertEl.classList.add('hidden');
+
+      // If not using "newest" sort, show a message about resorting
+      if (currentSort !== 'newest') {
+        const sortWarning = document.createElement('div');
+        sortWarning.className = 'text-sm text-[#0074cc] mb-4 mt-2';
+        sortWarning.textContent = `New answers have been added. You may want to refresh to see them in the correct order.`;
+        answersContainer.parentElement.insertBefore(sortWarning, answersContainer);
+
+        // Remove the warning after 5 seconds
+        setTimeout(() => {
+          sortWarning.remove();
+        }, 5000);
+      }
+
+      // Scroll to the new answer (based on sort)
+      const scrollToElement = currentSort === 'newest' ? answersContainer.firstElementChild : answersContainer.lastElementChild;
+      if (scrollToElement) {
+        window.scrollTo({
+          top: scrollToElement.offsetTop - 100,
+          behavior: 'smooth'
+        });
+      }
+    }
+
+    // Listen for messages from the server
+    evtSource.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+
+        // Handle new answers
+        if (data.type === 'answer' && data.data.questionId === parseInt(questionId)) {
+          // Add to the new answers array
+          newAnswers.push(data.data);
+
+          // Show the alert if not already visible
+          if (newAnswers.length > 0 && alertEl.classList.contains('hidden')) {
+            alertEl.classList.remove('hidden');
+            alertEl.textContent = `${newAnswers.length} new answer${newAnswers.length > 1 ? 's' : ''} available. Click to view.`;
+          } else if (newAnswers.length > 0) {
+            alertEl.textContent = `${newAnswers.length} new answer${newAnswers.length > 1 ? 's' : ''} available. Click to view.`;
+          }
+        }
+
+        // Handle connection status
+        if (data.type === 'connected') {
+          console.log('Connected to real-time updates:', data.clientId);
+        }
+      } catch (e) {
+        console.error('Error processing SSE message:', e);
+      }
+    };
+
+    // Handle connection errors
+    evtSource.onerror = (error) => {
+      console.error('SSE connection error:', error);
+      statusEl.querySelector('.h-2').classList.remove('bg-green-500');
+      statusEl.querySelector('.h-2').classList.add('bg-red-500');
+      statusEl.querySelector('span:last-child').textContent = 'Connection error. Reconnecting...';
+    };
+
+    // Clicking on the alert shows the new answers
+    alertEl.addEventListener('click', showNewAnswers);
+
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', () => {
+      evtSource.close();
+    });
+  }
+
+  // Function to setup answer posting with real-time updates
+  function setupAnswerPosting() {
+    const postButton = document.getElementById('post-answer-btn');
+    const answerTextarea = document.querySelector('textarea');
+    const questionId = window.location.pathname.split('/').pop();
+
+    if (!postButton || !answerTextarea || !questionId) return;
+
+    postButton.addEventListener('click', async (e) => {
+      e.preventDefault();
+
+      const answerContent = answerTextarea.value.trim();
+      if (!answerContent) {
+        alert('Please enter your answer before posting.');
+        return;
+      }
+
+      try {
+        // Prepare the answer body with proper HTML formatting
+        const formattedBody = `<p>${answerContent.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br>')}</p>`;
+
+        // Send the answer to the server
+        const response = await fetch('/api/answers', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            questionId,
+            body: formattedBody
+          })
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to post answer');
+        }
+
+        // Clear the textarea
+        answerTextarea.value = '';
+
+        // Show success message
+        alert('Your answer has been posted successfully!');
+
+        // In a real app with a database, the SSE would notify all clients
+        // For this demo, we'll just reload the page to show the new answer
+        window.location.reload();
+
+      } catch (error) {
+        console.error('Error posting answer:', error);
+        alert(`Error posting answer: ${error.message}`);
+      }
+    });
+  }
+</script>

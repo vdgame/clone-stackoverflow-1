@@ -1,0 +1,174 @@
+---
+import Comment from './Comment.astro';
+import { getSession } from 'auth-astro/server';
+
+export interface Props {
+  comments: Array<{
+    id: number;
+    content: string;
+    user: {
+      name: string;
+      reputation: number;
+      image?: string;
+    };
+    createdAt: string;
+    upvotes: number;
+    isUserUpvoted?: boolean;
+  }>;
+  parentType: 'question' | 'answer';
+  parentId: number | string;
+  showAllComments?: boolean;
+}
+
+const { comments, parentType, parentId, showAllComments = false } = Astro.props;
+
+const visibleComments = showAllComments ? comments : comments.slice(0, 5);
+const hasMoreComments = comments.length > 5 && !showAllComments;
+
+const session = await getSession(Astro.request);
+const isLoggedIn = !!session;
+---
+
+<div class="mt-2">
+  {visibleComments.map(comment => (
+    <Comment
+      id={comment.id}
+      content={comment.content}
+      user={comment.user}
+      createdAt={comment.createdAt}
+      upvotes={comment.upvotes}
+      isUserUpvoted={comment.isUserUpvoted}
+    />
+  ))}
+
+  {hasMoreComments && (
+    <div class="mt-1 text-center">
+      <a
+        href={`/comments/${parentType}/${parentId}?show=all`}
+        class="text-[13px] text-[#0074cc] dark:text-[#6cbbf7] hover:text-[#0a95ff] dark:hover:text-[#89c4ff]"
+      >
+        Show {comments.length - 5} more comments
+      </a>
+    </div>
+  )}
+
+  <div class="mt-2">
+    {isLoggedIn ? (
+      <div class="add-comment-form">
+        <form id={`comment-form-${parentType}-${parentId}`} data-parent-type={parentType} data-parent-id={parentId}>
+          <div class="flex">
+            <textarea
+              placeholder="Add a comment..."
+              name="comment"
+              rows="1"
+              class="w-full p-2 text-[13px] border border-[#babfc4] dark:border-[#393939] rounded focus:border-[#6bbbf7] dark:focus:border-[#6cbbf7] focus:outline-none focus:shadow-[0_0_0_4px_rgba(0,116,204,0.15)] dark:bg-[#2d2d2d] dark:text-[#e7e8eb]"
+            ></textarea>
+          </div>
+          <div class="flex justify-end mt-2">
+            <button
+              type="submit"
+              class="bg-[#0a95ff] hover:bg-[#0074cc] text-white dark:text-white text-[13px] px-2 py-1 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled
+            >
+              Add Comment
+            </button>
+          </div>
+        </form>
+      </div>
+    ) : (
+      <div class="text-[13px] text-[#6a737c] dark:text-[#9fa6ad]">
+        <a href="/users/login" class="text-[#0074cc] dark:text-[#6cbbf7] hover:text-[#0a95ff] dark:hover:text-[#89c4ff]">Sign up or log in</a> to add a comment.
+      </div>
+    )}
+  </div>
+</div>
+
+<script>
+  // Enable add comment button when textarea has content
+  document.addEventListener('DOMContentLoaded', () => {
+    const textareas = document.querySelectorAll('textarea[name="comment"]');
+    textareas.forEach(textarea => {
+      textarea.addEventListener('input', (e) => {
+        const target = e.target as HTMLTextAreaElement;
+        const form = target.closest('form');
+        const submitButton = form?.querySelector('button[type="submit"]');
+
+        if (submitButton) {
+          submitButton.disabled = !target.value.trim();
+        }
+
+        // Auto-resize textarea
+        target.style.height = 'auto';
+        target.style.height = `${Math.min(target.scrollHeight, 200)}px`;
+      });
+    });
+
+    // Handle comment form submission
+    const commentForms = document.querySelectorAll('form[id^="comment-form-"]');
+    commentForms.forEach(form => {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const formElement = e.target as HTMLFormElement;
+        const parentType = formElement.dataset.parentType;
+        const parentId = formElement.dataset.parentId;
+        const textarea = formElement.querySelector('textarea[name="comment"]') as HTMLTextAreaElement;
+        const comment = textarea.value.trim();
+
+        if (!comment) return;
+
+        try {
+          // In a real app, this would be an API call to save the comment
+          console.log(`Adding comment to ${parentType} ${parentId}: ${comment}`);
+
+          // Simulate successful submission
+          textarea.value = '';
+          textarea.style.height = 'auto';
+          formElement.querySelector('button[type="submit"]')!.disabled = true;
+
+          // Show success message (in a real app, you would add the new comment to the DOM)
+          alert('Comment added successfully!');
+
+          // Refresh the page to show the new comment
+          // In a real app, you would dynamically add the comment instead
+          window.location.reload();
+        } catch (error) {
+          console.error('Error adding comment:', error);
+          alert('Failed to add comment. Please try again.');
+        }
+      });
+    });
+
+    // Handle comment actions (upvote, edit, delete)
+    document.addEventListener('click', (e) => {
+      const target = e.target as HTMLElement;
+      const button = target.closest('[data-action]');
+
+      if (!button) return;
+
+      const action = button.getAttribute('data-action');
+      const commentId = button.getAttribute('data-comment-id');
+
+      if (!action || !commentId) return;
+
+      e.preventDefault();
+
+      switch (action) {
+        case 'upvote-comment':
+          console.log(`Upvoting comment ${commentId}`);
+          alert('Comment upvoted!');
+          break;
+        case 'edit-comment':
+          console.log(`Editing comment ${commentId}`);
+          alert('Comment edit functionality would be implemented here.');
+          break;
+        case 'delete-comment':
+          if (confirm('Are you sure you want to delete this comment?')) {
+            console.log(`Deleting comment ${commentId}`);
+            alert('Comment deleted!');
+          }
+          break;
+      }
+    });
+  });
+</script>

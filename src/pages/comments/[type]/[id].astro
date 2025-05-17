@@ -1,0 +1,376 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import Header from '../../../components/Header.astro';
+import Footer from '../../../components/Footer.astro';
+import Comment from '../../../components/Comment.astro';
+import { getSession } from 'auth-astro/server';
+
+// For static site generation, we need to generate a default version
+export const prerender = false;
+
+const { type, id } = Astro.params;
+
+// Check if we're redirected back to the question page
+if (Astro.url.searchParams.has('redirect')) {
+  return Astro.redirect(`/questions/${Astro.url.searchParams.get('redirect')}?show=all`);
+}
+
+// Mock data for comments - in a real app this would fetch from a database
+let commentsData;
+let parentTitle;
+let parentLink;
+let parentType;
+
+// For demo purposes, populate with sample data based on type and id
+if (type === 'question') {
+  commentsData = [
+    {
+      id: 101,
+      content: "Have you tried setting <code>-DINPUT_use_proprietary_codecs=ON</code> directly in your CMake configuration?",
+      user: {
+        name: "QtEnthusiast",
+        reputation: 3541
+      },
+      createdAt: "yesterday",
+      upvotes: 3,
+      isUserUpvoted: false
+    },
+    {
+      id: 102,
+      content: "Can you share your complete GitHub Actions workflow? It might help identify other issues with the build setup.",
+      user: {
+        name: "GithubActionsExpert",
+        reputation: 17895
+      },
+      createdAt: "yesterday",
+      upvotes: 4,
+      isUserUpvoted: true
+    },
+    {
+      id: 103,
+      content: "Which version of Ubuntu are you using? Some older versions have issues with Qt WebEngine builds.",
+      user: {
+        name: "LinuxFan42",
+        reputation: 8762
+      },
+      createdAt: "yesterday",
+      upvotes: 1,
+      isUserUpvoted: false
+    },
+    {
+      id: 104,
+      content: "I encountered a similar issue last month. Make sure you have all the necessary dependencies installed: <code>libxcomposite-dev libxdamage-dev libxrandr-dev libxkbcommon-dev libdrm-dev libasound2-dev libpulse-dev libnss3-dev libcups2-dev</code>",
+      user: {
+        name: "DependencyWizard",
+        reputation: 5123
+      },
+      createdAt: "yesterday",
+      upvotes: 6,
+      isUserUpvoted: false
+    },
+    {
+      id: 105,
+      content: "The error message is pretty clear: Qt requires the use_proprietary_codecs flag to be enabled if ffmpeg is enabled. You need to either disable ffmpeg or enable proprietary codecs.",
+      user: {
+        name: "ErrorMessageReader",
+        reputation: 12498
+      },
+      createdAt: "2 days ago",
+      upvotes: 9,
+      isUserUpvoted: false
+    },
+    {
+      id: 106,
+      content: "Are you trying to build Qt from source or just your application that uses Qt? For the latter, you should use a pre-built Qt with the features you need.",
+      user: {
+        name: "QtMaintainer",
+        reputation: 29873
+      },
+      createdAt: "2 days ago",
+      upvotes: 4,
+      isUserUpvoted: false
+    }
+  ];
+  parentTitle = "How to compile Qt webengine (6.8.3) on Ubuntu with proprietary codecs using Cmake and Github Actions";
+  parentLink = `/questions/${id}`;
+  parentType = "Question";
+} else if (type === 'answer') {
+  if (id === '1') {
+    commentsData = [
+      {
+        id: 201,
+        content: "This worked perfectly, thank you! I was missing the <code>-DINPUT_webengine_ffmpeg_build_gn=ON</code> flag.",
+        user: {
+          name: "admbrill",
+          reputation: 1243
+        },
+        createdAt: "yesterday",
+        upvotes: 2,
+        isUserUpvoted: false
+      },
+      {
+        id: 202,
+        content: "Great answer! Is there any documentation on all the possible INPUT flags for Qt WebEngine?",
+        user: {
+          name: "DocFinder",
+          reputation: 3817
+        },
+        createdAt: "yesterday",
+        upvotes: 3,
+        isUserUpvoted: false
+      },
+      {
+        id: 203,
+        content: "I think you can also use <code>-DQT_FEATURE_webengine_proprietary_codecs=ON</code> as mentioned in another answer. Both approaches work.",
+        user: {
+          name: "AnotherQtUser",
+          reputation: 7219
+        },
+        createdAt: "20 hours ago",
+        upvotes: 1,
+        isUserUpvoted: false
+      }
+    ];
+    parentTitle = "Answer about using -DINPUT_use_proprietary_codecs flag";
+    parentLink = `/questions/1`;
+    parentType = "Answer";
+  } else if (id === '2') {
+    commentsData = [
+      {
+        id: 301,
+        content: "I've tried this approach but it didn't work for me with Qt 6.8.3. The INPUT flags worked though.",
+        user: {
+          name: "QtyNewbie",
+          reputation: 489
+        },
+        createdAt: "10 hours ago",
+        upvotes: 0,
+        isUserUpvoted: false
+      },
+      {
+        id: 302,
+        content: "Interesting, I found this approach works better with the latest versions. Perhaps they changed something between minor releases?",
+        user: {
+          name: "CMakePro",
+          reputation: 12654
+        },
+        createdAt: "9 hours ago",
+        upvotes: 1,
+        isUserUpvoted: false
+      },
+      {
+        id: 303,
+        content: "The Qt documentation recommends using the QT_FEATURE_* variables for newer Qt versions, but they maintain backward compatibility with the INPUT_* variables for now.",
+        user: {
+          name: "QtDocReader",
+          reputation: 5623
+        },
+        createdAt: "7 hours ago",
+        upvotes: 2,
+        isUserUpvoted: false
+      }
+    ];
+    parentTitle = "Answer about using -DQT_FEATURE_webengine_proprietary_codecs flag";
+    parentLink = `/questions/1`;
+    parentType = "Answer";
+  } else {
+    commentsData = [];
+    parentTitle = "Unknown answer";
+    parentLink = `/questions`;
+    parentType = "Answer";
+  }
+} else {
+  commentsData = [];
+  parentTitle = "Unknown content";
+  parentLink = `/questions`;
+  parentType = "Unknown";
+}
+
+// Get current session to check if user is logged in
+const session = await getSession(Astro.request);
+const isLoggedIn = !!session;
+
+// Sort comments by most upvotes by default
+commentsData = commentsData.sort((a, b) => b.upvotes - a.upvotes);
+---
+
+<Layout title="Comments - Stack Overflow">
+  <Header />
+
+  <main class="max-w-4xl mx-auto p-4 md:p-6">
+    <div class="mb-6">
+      <h1 class="text-xl font-normal mb-1">Comments on {parentType}</h1>
+      <p class="text-[15px] text-[#3b4045] dark:text-[#e7e8eb]">
+        <a href={parentLink} class="text-[#0074cc] dark:text-[#6cbbf7] hover:text-[#0a95ff] dark:hover:text-[#89c4ff]">
+          {parentTitle}
+        </a>
+      </p>
+    </div>
+
+    <div class="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between">
+      <div class="mb-2 sm:mb-0 text-sm text-[#6a737c] dark:text-[#9fa6ad]">
+        {commentsData.length} comment{commentsData.length !== 1 ? 's' : ''}
+      </div>
+
+      <div class="flex items-center">
+        <label for="sort-comments" class="mr-2 text-sm">Sort by: </label>
+        <select
+          id="sort-comments"
+          class="py-1 px-2 border border-[#babfc4] dark:border-[#393939] rounded focus:border-[#6bbbf7] dark:focus:border-[#6cbbf7] focus:outline-none dark:bg-[#2d2d2d] dark:text-[#e7e8eb]"
+        >
+          <option value="votes">Votes</option>
+          <option value="newest">Newest</option>
+          <option value="oldest">Oldest</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="bg-white dark:bg-[#1e1e1e] border border-[#e3e6e8] dark:border-[#393939] rounded-md">
+      {commentsData.length > 0 ? (
+        <div>
+          {commentsData.map(comment => (
+            <Comment
+              id={comment.id}
+              content={comment.content}
+              user={comment.user}
+              createdAt={comment.createdAt}
+              upvotes={comment.upvotes}
+              isUserUpvoted={comment.isUserUpvoted}
+            />
+          ))}
+        </div>
+      ) : (
+        <div class="p-4 text-center text-[#6a737c] dark:text-[#9fa6ad]">
+          No comments found.
+        </div>
+      )}
+
+      <div class="border-t border-[#e3e6e8] dark:border-[#393939] p-4">
+        {isLoggedIn ? (
+          <div class="add-comment-form">
+            <form id="comment-form">
+              <div class="flex">
+                <textarea
+                  placeholder="Add a comment..."
+                  name="comment"
+                  rows="3"
+                  class="w-full p-2 text-[13px] border border-[#babfc4] dark:border-[#393939] rounded focus:border-[#6bbbf7] dark:focus:border-[#6cbbf7] focus:outline-none focus:shadow-[0_0_0_4px_rgba(0,116,204,0.15)] dark:bg-[#2d2d2d] dark:text-[#e7e8eb]"
+                ></textarea>
+              </div>
+              <div class="flex justify-end mt-2">
+                <button
+                  type="submit"
+                  class="bg-[#0a95ff] hover:bg-[#0074cc] text-white dark:text-white text-[13px] px-2 py-1 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled
+                >
+                  Add Comment
+                </button>
+              </div>
+            </form>
+          </div>
+        ) : (
+          <div class="text-[13px] text-[#6a737c] dark:text-[#9fa6ad]">
+            <a href="/users/login" class="text-[#0074cc] dark:text-[#6cbbf7] hover:text-[#0a95ff] dark:hover:text-[#89c4ff]">Sign up or log in</a> to add a comment.
+          </div>
+        )}
+      </div>
+    </div>
+
+    <div class="mt-4">
+      <a href={parentLink} class="text-[13px] text-[#0074cc] dark:text-[#6cbbf7] hover:text-[#0a95ff] dark:hover:text-[#89c4ff]">
+        Return to {parentType.toLowerCase()}
+      </a>
+    </div>
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  /* Comment styles */
+  :global(.comment-content code) {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    background-color: #f6f6f6;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-size: 0.9em;
+  }
+
+  :global(.dark .comment-content code) {
+    background-color: #2d2d2d;
+  }
+</style>
+
+<script>
+  // Enable add comment button when textarea has content
+  document.addEventListener('DOMContentLoaded', () => {
+    const textarea = document.querySelector('textarea[name="comment"]');
+    const form = document.getElementById('comment-form');
+
+    if (textarea) {
+      textarea.addEventListener('input', (e) => {
+        const target = e.target as HTMLTextAreaElement;
+        const submitButton = form?.querySelector('button[type="submit"]');
+
+        if (submitButton) {
+          submitButton.disabled = !target.value.trim();
+        }
+      });
+    }
+
+    if (form) {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const formElement = e.target as HTMLFormElement;
+        const textarea = formElement.querySelector('textarea[name="comment"]') as HTMLTextAreaElement;
+        const comment = textarea.value.trim();
+
+        if (!comment) return;
+
+        try {
+          // In a real app, this would be an API call to save the comment
+          console.log(`Adding comment: ${comment}`);
+
+          // Simulate successful submission
+          textarea.value = '';
+          formElement.querySelector('button[type="submit"]')!.disabled = true;
+
+          // Show success message (in a real app, you would add the new comment to the DOM)
+          alert('Comment added successfully!');
+
+          // Redirect back to the question page with all comments shown
+          const urlParams = new URLSearchParams(window.location.search);
+          const questionId = urlParams.get('questionId');
+          if (questionId) {
+            window.location.href = `/questions/${questionId}?show=all`;
+          } else {
+            window.location.reload();
+          }
+        } catch (error) {
+          console.error('Error adding comment:', error);
+          alert('Failed to add comment. Please try again.');
+        }
+      });
+    }
+
+    // Handle comment sorting
+    const sortSelect = document.getElementById('sort-comments') as HTMLSelectElement;
+    if (sortSelect) {
+      sortSelect.addEventListener('change', () => {
+        // In a real app, this would trigger a re-fetch or re-sort of comments
+        // For demo purposes, we'll just reload the page with a sort parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        urlParams.set('sort', sortSelect.value);
+        window.location.search = urlParams.toString();
+      });
+
+      // Set initial sort value from URL if present
+      const urlParams = new URLSearchParams(window.location.search);
+      const sortValue = urlParams.get('sort');
+      if (sortValue) {
+        sortSelect.value = sortValue;
+      }
+    }
+  });
+</script>

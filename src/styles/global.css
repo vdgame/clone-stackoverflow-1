@@ -1,0 +1,99 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom StackOverflow styles */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: #242729;
+  background-color: #fff;
+}
+
+.dark body {
+  color: #e7e8eb;
+  background-color: #1a1a1a;
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-[#0a95ff] hover:bg-[#0074cc] text-white font-normal py-1.5 px-2.5 rounded shadow-sm;
+  }
+
+  .btn-secondary {
+    @apply bg-white hover:bg-[#f8f9f9] text-[#39739d] border border-[#39739d] font-normal py-1.5 px-2.5 rounded shadow-sm;
+  }
+
+  .dark .btn-secondary {
+    @apply bg-[#2d2d2d] hover:bg-[#393939] text-[#6cbbf7] border-[#6cbbf7];
+  }
+
+  .nav-item {
+    @apply py-2 px-3 text-[13px] text-[#525960] hover:bg-[#f8f9f9];
+  }
+
+  .dark .nav-item {
+    @apply text-[#c9cdcf] hover:bg-[#2d2d2d];
+  }
+
+  .tag {
+    @apply inline-flex text-xs py-0.5 px-1.5 bg-[#e1ecf4] text-[#39739d] rounded;
+  }
+
+  .dark .tag {
+    @apply bg-[#1e3a52] text-[#6cbbf7];
+  }
+}
+
+/* Dark mode overrides */
+.dark header {
+  @apply bg-[#1e1e1e] border-t-[#f48024] border-b-[#393939];
+}
+
+.dark .bg-white {
+  @apply bg-[#1e1e1e];
+}
+
+.dark .text-[#3b4045], .dark .text-[#242729], .dark .text-[#0c0d0e], .dark .text-black {
+  @apply text-[#e7e8eb];
+}
+
+.dark .text-[#6a737c], .dark .text-[#525960], .dark .text-[#838c95] {
+  @apply text-[#9fa6ad];
+}
+
+.dark .border-[#e3e6e8], .dark .border-[#dee2e6], .dark .border-[#babfc4], .dark .border-[#d6d9dc] {
+  @apply border-[#393939];
+}
+
+.dark .bg-[#f8f9f9], .dark .bg-[#f1f2f3] {
+  @apply bg-[#2d2d2d];
+}
+
+.dark .bg-[#EBF4FB] {
+  @apply bg-[#1e3a52];
+}
+
+.dark .border-[#A6CEED] {
+  @apply border-[#1e3a52];
+}
+
+.dark a.text-[#0074cc] {
+  @apply text-[#6cbbf7];
+}
+
+.dark a.hover\:text-[#0a95ff]:hover {
+  @apply text-[#89c4ff];
+}
+
+/* Question content styles */
+.dark .question-body pre, .dark .answer-body pre {
+  @apply bg-[#2d2d2d];
+}
+
+.dark .question-body code, .dark .answer-body code {
+  @apply bg-[#2d2d2d];
+}
+
+.dark .accepted-answer {
+  @apply bg-[#1e3022] border-l-[#2e7d32];
+}

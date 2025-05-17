@@ -1,0 +1,27 @@
+---
+import { getSession } from 'auth-astro/server';
+import { signIn, signOut } from '../auth';
+
+// Get the current session
+const session = await getSession(Astro.request);
+const user = session?.user;
+---
+
+<div class="flex items-center">
+  {user ? (
+    <div class="flex items-center gap-2">
+      <a href="/user/profile" class="flex items-center gap-2">
+        {user.image && (
+          <img src={user.image} alt={user.name || 'User avatar'} class="w-8 h-8 rounded-full" />
+        )}
+        <span class="text-sm hidden md:inline">{user.name || 'User'}</span>
+      </a>
+      <a href={signOut()} class="btn-secondary text-[13px]">Log out</a>
+    </div>
+  ) : (
+    <div class="flex items-center gap-2">
+      <a href={signIn()} class="btn-secondary mr-1 text-[13px] hidden sm:inline-block">Log in</a>
+      <a href="/users/signup" class="btn-primary text-[13px]">Sign up</a>
+    </div>
+  )}
+</div>

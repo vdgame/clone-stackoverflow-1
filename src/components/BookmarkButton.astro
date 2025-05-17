@@ -1,0 +1,226 @@
+---
+export interface Props {
+  questionId: number | string;
+  isBookmarked?: boolean;
+  bookmarkCount?: number;
+  size?: 'small' | 'medium' | 'large';
+  showCount?: boolean;
+  className?: string;
+}
+
+const {
+  questionId,
+  isBookmarked = false,
+  bookmarkCount = 0,
+  size = 'medium',
+  showCount = true,
+  className = ''
+} = Astro.props;
+
+// Define size-based classes
+const sizeClasses = {
+  small: {
+    button: 'p-1',
+    icon: 'w-4 h-4',
+    count: 'text-[11px]'
+  },
+  medium: {
+    button: 'p-1.5',
+    icon: 'w-5 h-5',
+    count: 'text-[12px]'
+  },
+  large: {
+    button: 'p-2',
+    icon: 'w-6 h-6',
+    count: 'text-[13px]'
+  }
+};
+
+// Get the current session (in a real app)
+const isLoggedIn = true; // For demo purposes, assume user is logged in
+---
+
+<div class={`bookmark-container flex flex-col items-center ${className}`}>
+  <button
+    class={`bookmark-button ${sizeClasses[size].button} rounded-sm hover:bg-[#eff0f1] dark:hover:bg-[#2d2d2d] transition-colors ${isBookmarked ? 'text-[#f2720c] dark:text-[#f48024]' : 'text-[#6a737c] dark:text-[#9fa6ad]'}`}
+    data-question-id={questionId}
+    data-bookmarked={isBookmarked}
+    aria-label={isBookmarked ? 'Remove bookmark' : 'Bookmark this question'}
+    title={isBookmarked ? 'Remove bookmark' : 'Bookmark this question'}
+    data-login-required={!isLoggedIn}
+  >
+    <svg class={`${sizeClasses[size].icon} fill-current`} viewBox="0 0 24 24">
+      {isBookmarked ? (
+        <path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z" />
+      ) : (
+        <path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2zm0 15-5-2.18L7 18V5h10v13z" />
+      )}
+    </svg>
+  </button>
+
+  {showCount && bookmarkCount > 0 && (
+    <span class={`bookmark-count ${sizeClasses[size].count} text-[#6a737c] dark:text-[#9fa6ad] mt-1`}>
+      {bookmarkCount}
+    </span>
+  )}
+</div>
+
+<script>
+  // Bookmarking functionality
+  document.addEventListener('DOMContentLoaded', () => {
+    const bookmarkButtons = document.querySelectorAll('.bookmark-button');
+
+    bookmarkButtons.forEach(button => {
+      button.addEventListener('click', async (e) => {
+        const target = e.currentTarget as HTMLButtonElement;
+
+        // Check if login is required
+        if (target.dataset.loginRequired === 'true') {
+          window.location.href = '/users/login?returnUrl=' + encodeURIComponent(window.location.pathname);
+          return;
+        }
+
+        const questionId = target.dataset.questionId;
+        const isCurrentlyBookmarked = target.dataset.bookmarked === 'true';
+
+        try {
+          // Optimistic UI update
+          target.dataset.bookmarked = isCurrentlyBookmarked ? 'false' : 'true';
+
+          // Update icon
+          if (isCurrentlyBookmarked) {
+            target.classList.remove('text-[#f2720c]', 'dark:text-[#f48024]');
+            target.classList.add('text-[#6a737c]', 'dark:text-[#9fa6ad]');
+            target.setAttribute('title', 'Bookmark this question');
+            target.setAttribute('aria-label', 'Bookmark this question');
+          } else {
+            target.classList.add('text-[#f2720c]', 'dark:text-[#f48024]');
+            target.classList.remove('text-[#6a737c]', 'dark:text-[#9fa6ad]');
+            target.setAttribute('title', 'Remove bookmark');
+            target.setAttribute('aria-label', 'Remove bookmark');
+          }
+
+          // Update path inside SVG
+          const svg = target.querySelector('svg');
+          if (svg) {
+            const path = svg.querySelector('path');
+            if (path) {
+              if (isCurrentlyBookmarked) {
+                path.setAttribute('d', 'M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2zm0 15-5-2.18L7 18V5h10v13z');
+              } else {
+                path.setAttribute('d', 'M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z');
+              }
+            }
+          }
+
+          // Update bookmark count if present
+          const container = target.closest('.bookmark-container');
+          const countElement = container?.querySelector('.bookmark-count');
+
+          if (countElement) {
+            let count = parseInt(countElement.textContent || '0');
+
+            if (isCurrentlyBookmarked) {
+              count = Math.max(0, count - 1);
+              if (count === 0) {
+                countElement.textContent = '';
+                countElement.classList.add('hidden');
+              } else {
+                countElement.textContent = count.toString();
+              }
+            } else {
+              count += 1;
+              countElement.textContent = count.toString();
+              countElement.classList.remove('hidden');
+            }
+          }
+
+          // Make API call to bookmark/unbookmark
+          try {
+            const response = await fetch('/api/bookmarks', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                questionId: questionId,
+                action: isCurrentlyBookmarked ? 'remove' : 'add'
+              })
+            });
+
+            if (!response.ok) {
+              throw new Error('Failed to update bookmark');
+            }
+          } catch (error) {
+            console.error('Error updating bookmark:', error);
+            // Continue with optimistic UI updates even if API call fails
+          }
+
+          // Show toast notification
+          showBookmarkToast(!isCurrentlyBookmarked);
+
+        } catch (error) {
+          console.error('Error toggling bookmark:', error);
+
+          // Revert UI changes on error
+          target.dataset.bookmarked = isCurrentlyBookmarked ? 'true' : 'false';
+
+          // Show error message
+          alert('Failed to update bookmark. Please try again.');
+        }
+      });
+    });
+
+    // Function to show toast notification
+    function showBookmarkToast(isBookmarking: boolean) {
+      // Check if a toast container already exists, if not create one
+      let toastContainer = document.querySelector('.toast-container');
+
+      if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.className = 'toast-container fixed bottom-4 right-4 z-50 flex flex-col gap-2';
+        document.body.appendChild(toastContainer);
+      }
+
+      // Create toast element
+      const toast = document.createElement('div');
+      toast.className = 'toast bg-[#2e3e4e] dark:bg-[#3e4e5e] text-white px-4 py-2 rounded shadow-lg flex items-center transform translate-y-2 opacity-0 transition-all duration-300';
+
+      // Set toast content
+      const icon = document.createElement('span');
+      icon.className = 'mr-2 text-[#f48024]';
+      icon.innerHTML = isBookmarking
+        ? '<svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z" /></svg>'
+        : '<svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" /></svg>';
+
+      const message = document.createElement('span');
+      message.textContent = isBookmarking
+        ? 'Bookmark added! View all your bookmarks in your profile.'
+        : 'Bookmark removed.';
+
+      toast.appendChild(icon);
+      toast.appendChild(message);
+
+      // Add toast to container
+      toastContainer.appendChild(toast);
+
+      // Animate in
+      setTimeout(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      }, 10);
+
+      // Remove after delay
+      setTimeout(() => {
+        toast.classList.add('translate-y-2', 'opacity-0');
+        setTimeout(() => {
+          toast.remove();
+
+          // Remove container if empty
+          if (toastContainer.children.length === 0) {
+            toastContainer.remove();
+          }
+        }, 300);
+      }, 3000);
+    }
+  });
+</script>

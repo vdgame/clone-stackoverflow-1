@@ -1,0 +1,269 @@
+---
+export interface Props {
+  contentType: 'question' | 'answer';
+  contentId: string | number;
+  votes: number;
+  userVote?: 'up' | 'down' | null;
+  className?: string;
+  size?: 'small' | 'medium' | 'large';
+}
+
+const {
+  contentType,
+  contentId,
+  votes = 0,
+  userVote = null,
+  className = '',
+  size = 'medium'
+} = Astro.props;
+
+// Get the current session (in a real app)
+const isLoggedIn = true; // For demo purposes, assume user is logged in
+
+// Define size-based classes
+const sizeClasses = {
+  small: {
+    container: 'gap-1',
+    button: 'p-1',
+    icon: 'w-5 h-5',
+    count: 'text-[14px]'
+  },
+  medium: {
+    container: 'gap-2',
+    button: 'p-1',
+    icon: 'w-8 h-8',
+    count: 'text-[18px]'
+  },
+  large: {
+    container: 'gap-2',
+    button: 'p-1',
+    icon: 'w-10 h-10',
+    count: 'text-[21px]'
+  }
+};
+
+const upvoteClasses = userVote === 'up'
+  ? 'text-[#f48024] dark:text-[#f48024]'
+  : 'text-[#6a737c] dark:text-[#9fa6ad] hover:text-[#0a95ff] dark:hover:text-[#89c4ff]';
+
+const downvoteClasses = userVote === 'down'
+  ? 'text-[#f48024] dark:text-[#f48024]'
+  : 'text-[#6a737c] dark:text-[#9fa6ad] hover:text-[#0a95ff] dark:hover:text-[#89c4ff]';
+---
+
+<div class={`vote-container flex flex-col items-center ${sizeClasses[size].container} ${className}`}>
+  <button
+    class={`vote-button ${sizeClasses[size].button} ${upvoteClasses}`}
+    aria-label={`Upvote ${contentType}`}
+    data-type={contentType}
+    data-id={contentId}
+    data-vote="up"
+    data-current-vote={userVote}
+    data-login-required={!isLoggedIn}
+  >
+    <svg aria-hidden="true" class={sizeClasses[size].icon} viewBox="0 0 36 36">
+      <path d="M2 25h32L18 9 2 25Z" fill="currentColor"></path>
+    </svg>
+  </button>
+
+  <div
+    class={`vote-count ${sizeClasses[size].count} text-center text-[#3b4045] dark:text-[#e7e8eb] font-medium`}
+    data-type={contentType}
+    data-id={contentId}
+  >
+    {votes}
+  </div>
+
+  <button
+    class={`vote-button ${sizeClasses[size].button} ${downvoteClasses}`}
+    aria-label={`Downvote ${contentType}`}
+    data-type={contentType}
+    data-id={contentId}
+    data-vote="down"
+    data-current-vote={userVote}
+    data-login-required={!isLoggedIn}
+  >
+    <svg aria-hidden="true" class={sizeClasses[size].icon} viewBox="0 0 36 36">
+      <path d="M2 11h32L18 27 2 11Z" fill="currentColor"></path>
+    </svg>
+  </button>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const voteButtons = document.querySelectorAll('.vote-button');
+
+    voteButtons.forEach(button => {
+      button.addEventListener('click', async (e) => {
+        const target = e.currentTarget as HTMLButtonElement;
+
+        // Check if login is required
+        if (target.dataset.loginRequired === 'true') {
+          window.location.href = '/users/login?returnUrl=' + encodeURIComponent(window.location.pathname);
+          return;
+        }
+
+        const contentType = target.dataset.type;
+        const contentId = target.dataset.id;
+        const voteType = target.dataset.vote;
+        const currentVote = target.dataset.currentVote;
+
+        try {
+          // Optimistic UI update
+          const container = target.closest('.vote-container');
+          const voteCountElement = container?.querySelector('.vote-count') as HTMLElement;
+          const upvoteButton = container?.querySelector('[data-vote="up"]') as HTMLButtonElement;
+          const downvoteButton = container?.querySelector('[data-vote="down"]') as HTMLButtonElement;
+
+          if (!container || !voteCountElement || !upvoteButton || !downvoteButton) {
+            console.error('Required DOM elements not found');
+            return;
+          }
+
+          let voteCount = parseInt(voteCountElement.textContent || '0');
+
+          // Handle vote status update
+          if (voteType === 'up') {
+            if (currentVote === 'up') {
+              // Removing upvote
+              voteCount -= 1;
+              upvoteButton.dataset.currentVote = 'null';
+              upvoteButton.classList.remove('text-[#f48024]', 'dark:text-[#f48024]');
+              upvoteButton.classList.add('text-[#6a737c]', 'dark:text-[#9fa6ad]', 'hover:text-[#0a95ff]', 'dark:hover:text-[#89c4ff]');
+            } else if (currentVote === 'down') {
+              // Changing from downvote to upvote
+              voteCount += 2;
+              upvoteButton.dataset.currentVote = 'up';
+              downvoteButton.dataset.currentVote = 'up';
+              upvoteButton.classList.add('text-[#f48024]', 'dark:text-[#f48024]');
+              upvoteButton.classList.remove('text-[#6a737c]', 'dark:text-[#9fa6ad]', 'hover:text-[#0a95ff]', 'dark:hover:text-[#89c4ff]');
+              downvoteButton.classList.remove('text-[#f48024]', 'dark:text-[#f48024]');
+              downvoteButton.classList.add('text-[#6a737c]', 'dark:text-[#9fa6ad]', 'hover:text-[#0a95ff]', 'dark:hover:text-[#89c4ff]');
+            } else {
+              // New upvote
+              voteCount += 1;
+              upvoteButton.dataset.currentVote = 'up';
+              downvoteButton.dataset.currentVote = 'up';
+              upvoteButton.classList.add('text-[#f48024]', 'dark:text-[#f48024]');
+              upvoteButton.classList.remove('text-[#6a737c]', 'dark:text-[#9fa6ad]', 'hover:text-[#0a95ff]', 'dark:hover:text-[#89c4ff]');
+            }
+          } else if (voteType === 'down') {
+            if (currentVote === 'down') {
+              // Removing downvote
+              voteCount += 1;
+              downvoteButton.dataset.currentVote = 'null';
+              downvoteButton.classList.remove('text-[#f48024]', 'dark:text-[#f48024]');
+              downvoteButton.classList.add('text-[#6a737c]', 'dark:text-[#9fa6ad]', 'hover:text-[#0a95ff]', 'dark:hover:text-[#89c4ff]');
+            } else if (currentVote === 'up') {
+              // Changing from upvote to downvote
+              voteCount -= 2;
+              upvoteButton.dataset.currentVote = 'down';
+              downvoteButton.dataset.currentVote = 'down';
+              downvoteButton.classList.add('text-[#f48024]', 'dark:text-[#f48024]');
+              downvoteButton.classList.remove('text-[#6a737c]', 'dark:text-[#9fa6ad]', 'hover:text-[#0a95ff]', 'dark:hover:text-[#89c4ff]');
+              upvoteButton.classList.remove('text-[#f48024]', 'dark:text-[#f48024]');
+              upvoteButton.classList.add('text-[#6a737c]', 'dark:text-[#9fa6ad]', 'hover:text-[#0a95ff]', 'dark:hover:text-[#89c4ff]');
+            } else {
+              // New downvote
+              voteCount -= 1;
+              upvoteButton.dataset.currentVote = 'down';
+              downvoteButton.dataset.currentVote = 'down';
+              downvoteButton.classList.add('text-[#f48024]', 'dark:text-[#f48024]');
+              downvoteButton.classList.remove('text-[#6a737c]', 'dark:text-[#9fa6ad]', 'hover:text-[#0a95ff]', 'dark:hover:text-[#89c4ff]');
+            }
+          }
+
+          // Update vote count
+          voteCountElement.textContent = voteCount.toString();
+
+          // Apply color based on vote value
+          if (voteCount > 0) {
+            voteCountElement.classList.add('text-[#238636]', 'dark:text-[#57ab5a]');
+            voteCountElement.classList.remove('text-[#3b4045]', 'dark:text-[#e7e8eb]', 'text-[#d1383d]', 'dark:text-[#e57479]');
+          } else if (voteCount < 0) {
+            voteCountElement.classList.add('text-[#d1383d]', 'dark:text-[#e57479]');
+            voteCountElement.classList.remove('text-[#3b4045]', 'dark:text-[#e7e8eb]', 'text-[#238636]', 'dark:text-[#57ab5a]');
+          } else {
+            voteCountElement.classList.remove('text-[#238636]', 'dark:text-[#57ab5a]', 'text-[#d1383d]', 'dark:text-[#e57479]');
+            voteCountElement.classList.add('text-[#3b4045]', 'dark:text-[#e7e8eb]');
+          }
+
+          // Make API call to update vote on the server
+          await updateVote(contentType, contentId, voteType, currentVote);
+
+          // Show feedback toast
+          showVoteToast(voteType, currentVote);
+
+        } catch (error) {
+          console.error('Error voting:', error);
+          alert('Failed to register your vote. Please try again.');
+        }
+      });
+    });
+
+    // Function to send vote update to the server
+    async function updateVote(contentType, contentId, voteType, currentVote) {
+      // In a real app, this would be an API call
+      console.log(`Voting ${voteType} on ${contentType} ${contentId} (current vote: ${currentVote})`);
+
+      // Simulate API call
+      return new Promise(resolve => setTimeout(resolve, 300));
+    }
+
+    // Function to show toast notification
+    function showVoteToast(voteType, currentVote) {
+      // Create or get toast container
+      let toastContainer = document.querySelector('.toast-container');
+
+      if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.className = 'toast-container fixed bottom-4 right-4 z-50 flex flex-col gap-2';
+        document.body.appendChild(toastContainer);
+      }
+
+      // Create toast element
+      const toast = document.createElement('div');
+      toast.className = 'toast bg-[#2e3e4e] dark:bg-[#3e4e5e] text-white px-4 py-2 rounded shadow-lg flex items-center transform translate-y-2 opacity-0 transition-all duration-300';
+
+      // Determine message based on vote action
+      let message = '';
+
+      if (voteType === 'up') {
+        if (currentVote === 'up') {
+          message = 'Upvote removed';
+        } else {
+          message = 'Upvoted - thanks for providing feedback!';
+        }
+      } else if (voteType === 'down') {
+        if (currentVote === 'down') {
+          message = 'Downvote removed';
+        } else {
+          message = 'Downvoted - thanks for providing feedback!';
+        }
+      }
+
+      toast.textContent = message;
+
+      // Add toast to container
+      toastContainer.appendChild(toast);
+
+      // Animate in
+      setTimeout(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      }, 10);
+
+      // Remove after delay
+      setTimeout(() => {
+        toast.classList.add('translate-y-2', 'opacity-0');
+        setTimeout(() => {
+          toast.remove();
+
+          // Remove container if empty
+          if (toastContainer.children.length === 0) {
+            toastContainer.remove();
+          }
+        }, 300);
+      }, 3000);
+    }
+  });
+</script>

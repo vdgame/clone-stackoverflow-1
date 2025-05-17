@@ -1,0 +1,164 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import Sidebar from '../../components/Sidebar.astro';
+import BookmarkButton from '../../components/BookmarkButton.astro';
+import { getSession } from 'auth-astro/server';
+
+// Get the current session
+const session = await getSession(Astro.request);
+const user = session?.user;
+
+// Redirect if not logged in
+if (!user) {
+  return Astro.redirect('/users/login?redirect=/user/bookmarks');
+}
+
+// In a real app, fetch bookmarks from the API
+// For demo, we'll use mock data
+const bookmarks = [
+  {
+    questionId: 1,
+    title: "How to compile Qt webengine (6.8.3) on Ubuntu with proprietary codecs using Cmake and Github Actions",
+    votes: 15,
+    answers: 2,
+    views: 127,
+    tags: ["qt", "build", "compiler-errors", "continuous-integration", "qtwebengine"],
+    addedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2) // 2 days ago
+  },
+  {
+    questionId: 2,
+    title: "Understanding React's useEffect cleanup function",
+    votes: 42,
+    answers: 3,
+    views: 543,
+    tags: ["reactjs", "hooks", "useeffect", "javascript", "functional-components"],
+    addedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5) // 5 days ago
+  },
+  {
+    questionId: 3,
+    title: "How to handle authentication with JWT in a Next.js application",
+    votes: 28,
+    answers: 4,
+    views: 319,
+    tags: ["nextjs", "authentication", "jwt", "react", "api-routes"],
+    addedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7) // 7 days ago
+  }
+];
+
+// Format date to relative time
+const getRelativeTime = (date: Date) => {
+  const now = new Date();
+  const diffInMilliseconds = now.getTime() - date.getTime();
+
+  const diffInSeconds = Math.floor(diffInMilliseconds / 1000);
+  const diffInMinutes = Math.floor(diffInSeconds / 60);
+  const diffInHours = Math.floor(diffInMinutes / 60);
+  const diffInDays = Math.floor(diffInHours / 24);
+
+  if (diffInDays > 0) {
+    return `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago`;
+  } else if (diffInHours > 0) {
+    return `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
+  } else if (diffInMinutes > 0) {
+    return `${diffInMinutes} minute${diffInMinutes > 1 ? 's' : ''} ago`;
+  } else {
+    return 'just now';
+  }
+};
+---
+
+<Layout title="Your Bookmarks - Stack Overflow">
+  <Header />
+
+  <div class="container mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 mt-8">
+    <div class="flex flex-col md:flex-row">
+      <div class="w-full md:w-[164px] mb-4 md:mb-0">
+        <Sidebar />
+      </div>
+
+      <div class="flex-1 md:ml-6">
+        <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md shadow-sm">
+          <div class="border-b border-gray-200 dark:border-gray-700 p-4">
+            <h1 class="text-xl font-bold text-gray-900 dark:text-gray-100">Your Bookmarks</h1>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              Questions you have bookmarked for future reference
+            </p>
+          </div>
+
+          <div class="divide-y divide-gray-200 dark:divide-gray-700">
+            {bookmarks.length > 0 ? (
+              <div>
+                {bookmarks.map((bookmark) => (
+                  <div class="p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-2">
+                      <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                        <span>Bookmarked {getRelativeTime(bookmark.addedAt)}</span>
+                      </div>
+                      <div>
+                        <BookmarkButton
+                          questionId={bookmark.questionId}
+                          isBookmarked={true}
+                          size="small"
+                          showCount={false}
+                        />
+                      </div>
+                    </div>
+
+                    <h2 class="text-lg font-medium mb-2">
+                      <a href={`/questions/${bookmark.questionId}`} class="text-[#0074cc] hover:text-[#0a95ff]">
+                        {bookmark.title}
+                      </a>
+                    </h2>
+
+                    <div class="flex flex-wrap gap-2 mb-2">
+                      {bookmark.tags.map((tag) => (
+                        <a href={`/tags/${tag}`} class="tag">{tag}</a>
+                      ))}
+                    </div>
+
+                    <div class="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+                      <div class={`flex items-center ${bookmark.votes > 0 ? 'text-green-600' : bookmark.votes < 0 ? 'text-red-500' : ''}`}>
+                        <span class="mr-1">{bookmark.votes}</span>
+                        <span>votes</span>
+                      </div>
+                      <div class={`flex items-center ${bookmark.answers > 0 ? 'text-[#0074cc]' : ''}`}>
+                        <span class="mr-1">{bookmark.answers}</span>
+                        <span>answers</span>
+                      </div>
+                      <div class="flex items-center">
+                        <span class="mr-1">{bookmark.views}</span>
+                        <span>views</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div class="p-8 text-center text-gray-500 dark:text-gray-400">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mx-auto mb-4 text-gray-400">
+                  <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                </svg>
+                <p>You don't have any bookmarked questions yet</p>
+                <p class="mt-2 text-sm">To bookmark a question, click the bookmark icon on a question page</p>
+                <div class="mt-4">
+                  <a href="/questions" class="btn-primary">Browse Questions</a>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <Footer />
+</Layout>
+
+<script>
+  // Handle removing bookmarks
+  document.addEventListener('DOMContentLoaded', () => {
+    // This will be handled by the BookmarkButton component's existing logic
+  });
+</script>

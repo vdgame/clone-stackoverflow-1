@@ -1,0 +1,46 @@
+---
+import '../styles/global.css';
+import ThemeToggle from '../components/ThemeToggle.astro';
+import KeyboardShortcuts from '../components/KeyboardShortcuts.astro';
+
+interface Props {
+	title: string;
+}
+
+const { title } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="description" content="Stack Overflow - Where Developers Learn, Share, & Build Careers" />
+		<meta name="viewport" content="width=device-width" />
+		<link rel="icon" type="image/svg+xml" href="https://cdn.sstatic.net/Sites/stackoverflow/Img/favicon.ico" />
+		<meta name="generator" content={Astro.generator} />
+		<title>{title}</title>
+
+		<!-- Theme initialization script to prevent flash of wrong theme -->
+		<script is:inline>
+			// Check for saved theme preference or use system preference
+			const getThemePreference = () => {
+				if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
+					return localStorage.getItem('theme');
+				}
+				return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+			};
+
+			// Apply theme before page loads to prevent flash
+			const themePreference = getThemePreference();
+			document.documentElement.classList.toggle('dark', themePreference === 'dark');
+		</script>
+
+		<!-- Global keyboard shortcuts script -->
+		<script src="/src/scripts/keyboard-shortcuts.js"></script>
+	</head>
+	<body>
+		<slot />
+		<ThemeToggle />
+		<KeyboardShortcuts />
+	</body>
+</html>

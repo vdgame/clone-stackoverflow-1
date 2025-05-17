@@ -1,0 +1,315 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Header from '../../components/Header.astro';
+import Sidebar from '../../components/Sidebar.astro';
+import Footer from '../../components/Footer.astro';
+import { getSession } from 'auth-astro/server';
+
+// Get current session
+const session = await getSession(Astro.request);
+
+// If not logged in, redirect to login page
+if (!session) {
+  return Astro.redirect('/users/login');
+}
+
+const user = session.user;
+
+// Mock user activity data
+const userActivity = {
+  reputation: 1243,
+  badges: {
+    gold: 3,
+    silver: 18,
+    bronze: 42
+  },
+  questions: [
+    {
+      id: 1,
+      title: "How to compile Qt webengine (6.8.3) on Ubuntu with proprietary codecs using Cmake and Github Actions",
+      votes: 15,
+      answers: 2,
+      accepted: true,
+      timestamp: "2 days ago"
+    },
+    {
+      id: 2,
+      title: "Converting Qt WebEngine from 6.6 to 6.8 breaks video playback",
+      votes: 8,
+      answers: 1,
+      accepted: false,
+      timestamp: "1 week ago"
+    }
+  ],
+  answers: [
+    {
+      id: 101,
+      questionTitle: "Implementing Qt WebEngine custom protocol",
+      votes: 23,
+      accepted: true,
+      timestamp: "3 days ago"
+    },
+    {
+      id: 102,
+      questionTitle: "How to enable PDF support in Qt WebEngine 6.5?",
+      votes: 12,
+      accepted: true,
+      timestamp: "2 weeks ago"
+    },
+    {
+      id: 103,
+      questionTitle: "Qt WebEngine freezes when loading large SVG files",
+      votes: 4,
+      accepted: false,
+      timestamp: "1 month ago"
+    }
+  ],
+  tags: [
+    { name: "qt", count: 15 },
+    { name: "qtwebengine", count: 12 },
+    { name: "c++", count: 8 },
+    { name: "cmake", count: 5 },
+    { name: "github-actions", count: 3 }
+  ]
+};
+---
+
+<Layout title={`${user.name || 'User'} - Stack Overflow`}>
+  <Header />
+
+  <div class="flex flex-col md:flex-row">
+    <!-- Sidebar is hidden on mobile, visible on md screens and up -->
+    <div class="hidden md:block">
+      <Sidebar />
+    </div>
+
+    <main class="flex-1 p-4 md:p-6">
+      <!-- User Profile Header -->
+      <div class="flex flex-col md:flex-row gap-4 md:gap-8 mb-8">
+        <div class="flex-shrink-0 text-center md:text-left">
+          <img
+            src={user.image || 'https://www.gravatar.com/avatar/0?d=identicon&s=256'}
+            alt={user.name || 'User'}
+            class="w-[128px] h-[128px] rounded-md mb-2 mx-auto md:mx-0"
+          />
+          <div class="text-[13px] text-[#6a737c]">
+            Member for 2 years, 3 months
+          </div>
+          <div class="text-[13px] text-[#6a737c]">
+            Last seen this week
+          </div>
+        </div>
+
+        <div class="flex-1">
+          <h1 class="text-2xl md:text-3xl font-normal mb-1">
+            {user.name || 'Anonymous User'}
+          </h1>
+          <div class="text-[#6a737c] mb-4">
+            {user.email && (
+              <div class="text-[13px]">{user.email}</div>
+            )}
+            <div class="text-[13px]">GitHub User</div>
+          </div>
+
+          <div class="flex flex-wrap gap-4 mb-4">
+            <div class="flex items-center gap-1">
+              <div class="text-xl font-bold">{userActivity.reputation}</div>
+              <div class="text-[13px] text-[#6a737c]">reputation</div>
+            </div>
+            <div class="flex items-center gap-2">
+              <div class="flex items-center">
+                <span class="w-6 h-6 rounded-full flex items-center justify-center bg-[#ffcc01] text-white text-[13px] font-bold mr-1">{userActivity.badges.gold}</span>
+                <span class="text-[13px] text-[#6a737c]">gold</span>
+              </div>
+              <div class="flex items-center">
+                <span class="w-6 h-6 rounded-full flex items-center justify-center bg-[#b4b8bc] text-white text-[13px] font-bold mr-1">{userActivity.badges.silver}</span>
+                <span class="text-[13px] text-[#6a737c]">silver</span>
+              </div>
+              <div class="flex items-center">
+                <span class="w-6 h-6 rounded-full flex items-center justify-center bg-[#d1a684] text-white text-[13px] font-bold mr-1">{userActivity.badges.bronze}</span>
+                <span class="text-[13px] text-[#6a737c]">bronze</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap gap-2">
+            <a href="#" class="text-[13px] text-[#0074cc] hover:text-[#0a95ff]">
+              Activity
+            </a>
+            <span class="text-[#6a737c]">•</span>
+            <a href="#" class="text-[13px] text-[#0074cc] hover:text-[#0a95ff]">
+              Edit profile
+            </a>
+            <span class="text-[#6a737c]">•</span>
+            <a href="#" class="text-[13px] text-[#0074cc] hover:text-[#0a95ff]">
+              Settings
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="border-b border-[#e3e6e8] mb-6">
+        <div class="flex overflow-x-auto">
+          <a href="#" class="px-3 py-2 text-sm text-[#3b4045] border-b-2 border-[#f48024]">Profile</a>
+          <a href="#" class="px-3 py-2 text-sm text-[#6a737c] hover:text-[#3b4045]">Activity</a>
+          <a href="#" class="px-3 py-2 text-sm text-[#6a737c] hover:text-[#3b4045]">Saves</a>
+          <a href="#" class="px-3 py-2 text-sm text-[#6a737c] hover:text-[#3b4045]">Settings</a>
+        </div>
+      </div>
+
+      <!-- Main Content -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Left Column -->
+        <div class="md:col-span-2">
+          <div class="mb-8">
+            <h2 class="text-xl font-normal mb-4">Your Questions</h2>
+            {userActivity.questions.length > 0 ? (
+              <div class="divide-y">
+                {userActivity.questions.map(question => (
+                  <div class="py-3">
+                    <div class="flex items-start gap-4">
+                      <div class="flex flex-col items-end text-[13px] text-[#6a737c] w-[50px]">
+                        <div class="mb-1">
+                          <span class={`font-medium ${question.votes < 0 ? 'text-[#d1383d]' : question.votes > 0 ? 'text-[#3d8f58]' : ''}`}>
+                            {question.votes}
+                          </span>
+                        </div>
+                        <div class="mb-1">
+                          <span class={`px-1.5 py-0.5 rounded ${question.answers > 0 ? (question.accepted ? 'bg-[#5eba7d] text-white' : 'bg-[#0074cc] text-white') : 'border border-[#6a737c]'}`}>
+                            {question.answers}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div class="flex-1">
+                        <h3 class="text-[15px] mb-1">
+                          <a href={`/questions/${question.id}`} class="text-[#0074cc] hover:text-[#0a95ff]">{question.title}</a>
+                        </h3>
+                        <div class="text-[13px] text-[#6a737c]">
+                          Asked {question.timestamp}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div class="text-[13px] text-[#6a737c]">
+                You haven't asked any questions yet.
+              </div>
+            )}
+
+            {userActivity.questions.length > 0 && (
+              <div class="mt-4">
+                <a href="#" class="text-[13px] text-[#0074cc] hover:text-[#0a95ff]">
+                  View all questions
+                </a>
+              </div>
+            )}
+          </div>
+
+          <div>
+            <h2 class="text-xl font-normal mb-4">Your Answers</h2>
+            {userActivity.answers.length > 0 ? (
+              <div class="divide-y">
+                {userActivity.answers.map(answer => (
+                  <div class="py-3">
+                    <div class="flex items-start gap-4">
+                      <div class="flex flex-col items-end text-[13px] text-[#6a737c] w-[50px]">
+                        <div class="mb-1">
+                          <span class={`font-medium ${answer.votes < 0 ? 'text-[#d1383d]' : answer.votes > 0 ? 'text-[#3d8f58]' : ''}`}>
+                            {answer.votes}
+                          </span>
+                        </div>
+                        {answer.accepted && (
+                          <div class="text-[#2e7d32]" title="Accepted answer">
+                            <svg aria-hidden="true" width="18" height="18" viewBox="0 0 18 18">
+                              <path d="M16 4.41 14.59 3 6 11.59 2.41 8 1 9.41l5 5 10-10Z" fill="currentColor"></path>
+                            </svg>
+                          </div>
+                        )}
+                      </div>
+
+                      <div class="flex-1">
+                        <h3 class="text-[15px] mb-1">
+                          <a href="#" class="text-[#0074cc] hover:text-[#0a95ff]">{answer.questionTitle}</a>
+                        </h3>
+                        <div class="text-[13px] text-[#6a737c]">
+                          Answered {answer.timestamp}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div class="text-[13px] text-[#6a737c]">
+                You haven't answered any questions yet.
+              </div>
+            )}
+
+            {userActivity.answers.length > 0 && (
+              <div class="mt-4">
+                <a href="#" class="text-[13px] text-[#0074cc] hover:text-[#0a95ff]">
+                  View all answers
+                </a>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <!-- Right Column -->
+        <div>
+          <div class="mb-6">
+            <h2 class="text-xl font-normal mb-4">Top Tags</h2>
+            {userActivity.tags.length > 0 ? (
+              <div class="space-y-3">
+                {userActivity.tags.map(tag => (
+                  <div class="flex items-center justify-between">
+                    <a href={`/questions/tagged/${tag.name}`} class="tag hover:bg-[#d0e3f1]">{tag.name}</a>
+                    <div class="text-xs text-[#6a737c]">
+                      <span class="font-bold">{tag.count}</span> posts
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div class="text-[13px] text-[#6a737c]">
+                You don't have any tag badges yet.
+              </div>
+            )}
+          </div>
+
+          <div>
+            <h2 class="text-xl font-normal mb-4">Stats</h2>
+            <div class="bg-[#f8f9f9] border border-[#e3e6e8] rounded-md px-4 py-3">
+              <div class="flex justify-between items-center mb-3">
+                <div class="text-[13px] text-[#6a737c]">Reputation</div>
+                <div class="font-bold">{userActivity.reputation}</div>
+              </div>
+              <div class="flex justify-between items-center mb-3">
+                <div class="text-[13px] text-[#6a737c]">Reached</div>
+                <div class="font-bold">~18k people</div>
+              </div>
+              <div class="flex justify-between items-center mb-3">
+                <div class="text-[13px] text-[#6a737c]">Questions</div>
+                <div class="font-bold">{userActivity.questions.length}</div>
+              </div>
+              <div class="flex justify-between items-center mb-3">
+                <div class="text-[13px] text-[#6a737c]">Answers</div>
+                <div class="font-bold">{userActivity.answers.length}</div>
+              </div>
+              <div class="flex justify-between items-center">
+                <div class="text-[13px] text-[#6a737c]">Badges</div>
+                <div class="font-bold">{userActivity.badges.gold + userActivity.badges.silver + userActivity.badges.bronze}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <Footer />
+</Layout>

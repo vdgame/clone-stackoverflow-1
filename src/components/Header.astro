@@ -1,0 +1,190 @@
+---
+import AuthButton from './AuthButton.astro';
+import NotificationBell from './NotificationBell.astro';
+---
+
+<header class="fixed top-0 left-0 w-full bg-white border-t-[3px] border-t-[#f48024] border-b border-b-[#dee2e6] shadow-sm z-50 dark:bg-gray-900 dark:border-b-gray-700">
+  <div class="flex items-center h-[50px] px-4">
+    <!-- Mobile menu button -->
+    <button id="mobile-menu-button" class="md:hidden mr-2">
+      <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" class="text-[#525960] dark:text-gray-300">
+        <path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round" stroke-linejoin="round"></path>
+      </svg>
+    </button>
+
+    <div class="flex items-center">
+      <a href="/" class="flex items-center mr-4">
+        <img src="https://ext.same-assets.com/1773809462/1992195040.svg" alt="Stack Overflow" class="h-[30px]" />
+      </a>
+      <nav class="hidden md:flex">
+        <ul class="flex">
+          <li>
+            <a href="/" class="nav-item">About</a>
+          </li>
+          <li>
+            <a href="/products" class="nav-item">Products</a>
+          </li>
+          <li>
+            <a href="/overflowai" class="nav-item">OverflowAI</a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+
+    <div class="flex-1 px-2 mx-2">
+      <div class="relative">
+        <!-- Search on desktop -->
+        <div class="hidden md:flex items-center border border-[#babfc4] rounded pl-2 focus-within:border-[#6bbbf7] focus-within:shadow-[0_0_0_4px_rgba(0,116,204,0.15)] dark:border-gray-600 dark:bg-gray-800">
+          <span class="text-[#838c95] dark:text-gray-400">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M18 16.5L14.2642 12.7642C15.566 11.3436 16.1979 9.47552 15.9475 7.6222C15.697 5.76888 14.5844 4.1041 12.8962 3.05259C11.208 2.00108 9.10851 1.65825 7.1577 2.10893C5.20688 2.5596 3.5562 3.76107 2.55751 5.43403C1.55882 7.10699 1.2937 9.10316 1.82301 10.986C2.35231 12.8688 3.63395 14.4719 5.37107 15.4171C7.10819 16.3622 9.16306 16.5651 11.0453 15.9745C12.9276 15.3839 14.4637 14.0481 15.3375 12.3003L19.0785 16.0413L18 16.5ZM8.5 14C7.21442 14 5.95772 13.6188 4.88879 12.9046C3.81985 12.1903 2.98681 11.1752 2.49479 9.98744C2.00277 8.7997 1.87408 7.49279 2.1249 6.23479C2.37572 4.97679 2.99477 3.81978 3.90381 2.91074C4.81285 2.0017 5.96986 1.38265 7.22787 1.13183C8.48587 0.881011 9.79278 1.0097 10.9805 1.50172C12.1683 1.99374 13.1834 2.82678 13.8976 3.89571C14.6118 4.96465 14.993 6.22135 14.993 7.50693C14.9898 9.21631 14.3116 10.8545 13.0926 12.0736C11.8735 13.2926 10.2354 13.9708 8.526 13.974L8.5 14Z" fill="currentColor" />
+            </svg>
+          </span>
+          <input type="text" placeholder="Search..." class="w-full py-1.5 px-2 border-none outline-none text-[13px] bg-transparent dark:text-white" />
+        </div>
+
+        <!-- Search icon on mobile -->
+        <button id="mobile-search-button" class="md:hidden text-[#838c95] dark:text-gray-400">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M18 16.5L14.2642 12.7642C15.566 11.3436 16.1979 9.47552 15.9475 7.6222C15.697 5.76888 14.5844 4.1041 12.8962 3.05259C11.208 2.00108 9.10851 1.65825 7.1577 2.10893C5.20688 2.5596 3.5562 3.76107 2.55751 5.43403C1.55882 7.10699 1.2937 9.10316 1.82301 10.986C2.35231 12.8688 3.63395 14.4719 5.37107 15.4171C7.10819 16.3622 9.16306 16.5651 11.0453 15.9745C12.9276 15.3839 14.4637 14.0481 15.3375 12.3003L19.0785 16.0413L18 16.5ZM8.5 14C7.21442 14 5.95772 13.6188 4.88879 12.9046C3.81985 12.1903 2.98681 11.1752 2.49479 9.98744C2.00277 8.7997 1.87408 7.49279 2.1249 6.23479C2.37572 4.97679 2.99477 3.81978 3.90381 2.91074C4.81285 2.0017 5.96986 1.38265 7.22787 1.13183C8.48587 0.881011 9.79278 1.0097 10.9805 1.50172C12.1683 1.99374 13.1834 2.82678 13.8976 3.89571C14.6118 4.96465 14.993 6.22135 14.993 7.50693C14.9898 9.21631 14.3116 10.8545 13.0926 12.0736C11.8735 13.2926 10.2354 13.9708 8.526 13.974L8.5 14Z" fill="currentColor" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="flex items-center">
+      <NotificationBell />
+      <AuthButton />
+    </div>
+  </div>
+
+  <!-- Mobile search overlay (hidden by default) -->
+  <div id="mobile-search-overlay" class="hidden fixed inset-0 bg-white z-50 p-4">
+    <div class="flex items-center mb-4">
+      <button id="close-search-button" class="mr-2">
+        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"></path>
+        </svg>
+      </button>
+      <div class="flex-1">
+        <div class="flex items-center border border-[#babfc4] rounded pl-2 focus-within:border-[#6bbbf7] focus-within:shadow-[0_0_0_4px_rgba(0,116,204,0.15)]">
+          <span class="text-[#838c95]">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M18 16.5L14.2642 12.7642C15.566 11.3436 16.1979 9.47552 15.9475 7.6222C15.697 5.76888 14.5844 4.1041 12.8962 3.05259C11.208 2.00108 9.10851 1.65825 7.1577 2.10893C5.20688 2.5596 3.5562 3.76107 2.55751 5.43403C1.55882 7.10699 1.2937 9.10316 1.82301 10.986C2.35231 12.8688 3.63395 14.4719 5.37107 15.4171C7.10819 16.3622 9.16306 16.5651 11.0453 15.9745C12.9276 15.3839 14.4637 14.0481 15.3375 12.3003L19.0785 16.0413L18 16.5ZM8.5 14C7.21442 14 5.95772 13.6188 4.88879 12.9046C3.81985 12.1903 2.98681 11.1752 2.49479 9.98744C2.00277 8.7997 1.87408 7.49279 2.1249 6.23479C2.37572 4.97679 2.99477 3.81978 3.90381 2.91074C4.81285 2.0017 5.96986 1.38265 7.22787 1.13183C8.48587 0.881011 9.79278 1.0097 10.9805 1.50172C12.1683 1.99374 13.1834 2.82678 13.8976 3.89571C14.6118 4.96465 14.993 6.22135 14.993 7.50693C14.9898 9.21631 14.3116 10.8545 13.0926 12.0736C11.8735 13.2926 10.2354 13.9708 8.526 13.974L8.5 14Z" fill="currentColor" />
+            </svg>
+          </span>
+          <input type="text" placeholder="Search..." class="w-full py-1.5 px-2 border-none outline-none text-[13px]" autofocus />
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-2">
+      <h3 class="text-sm font-bold mb-2">Popular searches:</h3>
+      <div class="flex flex-wrap gap-2">
+        <a href="/search?q=javascript" class="tag">javascript</a>
+        <a href="/search?q=python" class="tag">python</a>
+        <a href="/search?q=react" class="tag">react</a>
+        <a href="/search?q=node.js" class="tag">node.js</a>
+        <a href="/search?q=css" class="tag">css</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile menu sidebar (hidden by default) -->
+  <div id="mobile-menu" class="hidden fixed inset-0 z-50 bg-black bg-opacity-50">
+    <div class="w-[250px] h-full bg-white overflow-y-auto">
+      <div class="p-4 border-b border-[#e3e6e8]">
+        <AuthButton />
+      </div>
+
+      <nav>
+        <ul class="py-2">
+          <li>
+            <a href="/" class="flex items-center py-3 px-4 text-[15px] text-[#525960] hover:bg-[#f8f9f9]">
+              <div class="w-5 mr-2">
+                <svg aria-hidden="true" width="18" height="18" viewBox="0 0 18 18">
+                  <path d="M15 10v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5H0l9-9 9 9h-3ZM9 4.09 4 9h2v5h6v-5h2L9 4.09Z" fill="#525960"></path>
+                </svg>
+              </div>
+              Home
+            </a>
+          </li>
+          <li>
+            <a href="/questions" class="flex items-center py-3 px-4 text-[15px] font-bold text-black hover:bg-[#f8f9f9] bg-[#f1f2f3]">
+              <div class="w-5 mr-2">
+                <svg aria-hidden="true" width="18" height="18" viewBox="0 0 18 18">
+                  <path d="M4 14v-2h1v-2H4V8h1V6H4V4h9v10H4Zm8-8H7v1h5V6Zm0 3H7v1h5V9Zm-5 3h5v-1H7v1Z" fill="#f48024"></path>
+                </svg>
+              </div>
+              Questions
+            </a>
+          </li>
+          <li>
+            <a href="/tags" class="flex items-center py-3 px-4 text-[15px] text-[#525960] hover:bg-[#f8f9f9]">
+              <div class="w-5 mr-2">
+                <svg aria-hidden="true" width="18" height="18" viewBox="0 0 18 18">
+                  <path d="m6 1 .59-.59L1 6 0 5l6-4Zm5.02 2.56 1.42-1.42L16 5.7 14.58 7.12l-3.56-3.56Zm-7.6 7.6L2 9.8l5.58-5.58L8.8 5.64 3.42 11.16Zm9.37-4.71-4.98 4.98-1.42-1.42 4.98-4.98 1.42 1.42Z" fill="#525960"></path>
+                </svg>
+              </div>
+              Tags
+            </a>
+          </li>
+          <li class="border-t border-[#e3e6e8] pt-2 mt-2">
+            <a href="/about" class="flex items-center py-3 px-4 text-[15px] text-[#525960] hover:bg-[#f8f9f9]">
+              About
+            </a>
+          </li>
+          <li>
+            <a href="/products" class="flex items-center py-3 px-4 text-[15px] text-[#525960] hover:bg-[#f8f9f9]">
+              Products
+            </a>
+          </li>
+          <li>
+            <a href="/overflowai" class="flex items-center py-3 px-4 text-[15px] text-[#525960] hover:bg-[#f8f9f9]">
+              OverflowAI
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </div>
+</header>
+<div class="h-[50px]"></div> <!-- Spacer for fixed header -->
+
+<script>
+  // Mobile menu toggle
+  const mobileMenuButton = document.getElementById('mobile-menu-button');
+  const mobileMenu = document.getElementById('mobile-menu');
+
+  if (mobileMenuButton && mobileMenu) {
+    mobileMenuButton.addEventListener('click', () => {
+      mobileMenu.classList.toggle('hidden');
+      document.body.classList.toggle('overflow-hidden');
+    });
+
+    // Close when clicking outside the menu
+    mobileMenu.addEventListener('click', (e) => {
+      if (e.target === mobileMenu) {
+        mobileMenu.classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
+      }
+    });
+  }
+
+  // Mobile search toggle
+  const mobileSearchButton = document.getElementById('mobile-search-button');
+  const mobileSearchOverlay = document.getElementById('mobile-search-overlay');
+  const closeSearchButton = document.getElementById('close-search-button');
+
+  if (mobileSearchButton && mobileSearchOverlay && closeSearchButton) {
+    mobileSearchButton.addEventListener('click', () => {
+      mobileSearchOverlay.classList.remove('hidden');
+      document.body.classList.add('overflow-hidden');
+    });
+
+    closeSearchButton.addEventListener('click', () => {
+      mobileSearchOverlay.classList.add('hidden');
+      document.body.classList.remove('overflow-hidden');
+    });
+  }
+</script>

@@ -1,0 +1,315 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Header from '../../components/Header.astro';
+import Sidebar from '../../components/Sidebar.astro';
+import RightSidebar from '../../components/RightSidebar.astro';
+import Footer from '../../components/Footer.astro';
+
+// Get search parameters
+const url = new URL(Astro.request.url);
+const page = parseInt(url.searchParams.get('page') || '1');
+const tab = url.searchParams.get('tab') || 'reputation';
+const search = url.searchParams.get('search') || '';
+
+// Fetch users from our API
+const usersResponse = await fetch(`${Astro.url.origin}/api/users?page=${page}&tab=${tab}&search=${search}`);
+const usersData = await usersResponse.json();
+
+// Calculate pagination
+const { users, totalUsers, currentPage, totalPages } = usersData;
+
+// Helper function to format numbers with commas
+function formatNumber(num: number): string {
+  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+// Helper function to format date as "joined Month Day, Year"
+function formatJoinDate(dateString: string): string {
+  const date = new Date(dateString);
+  return `joined ${date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`;
+}
+
+// Helper function to format the last seen date
+function formatLastSeen(dateString: string): string {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffInMillis = now.getTime() - date.getTime();
+  const diffInMinutes = Math.floor(diffInMillis / (1000 * 60));
+
+  if (diffInMinutes < 1) return 'just now';
+  if (diffInMinutes < 60) return `${diffInMinutes} mins ago`;
+
+  const diffInHours = Math.floor(diffInMinutes / 60);
+  if (diffInHours < 24) return `${diffInHours} hours ago`;
+
+  const diffInDays = Math.floor(diffInHours / 24);
+  if (diffInDays < 30) return `${diffInDays} days ago`;
+
+  const diffInMonths = Math.floor(diffInDays / 30);
+  if (diffInMonths < 12) return `${diffInMonths} months ago`;
+
+  const diffInYears = Math.floor(diffInMonths / 12);
+  return `${diffInYears} years ago`;
+}
+
+// Generate page title based on tab
+let pageTitle = 'Users';
+switch (tab) {
+  case 'reputation': pageTitle = 'Users'; break;
+  case 'new_users': pageTitle = 'New Users'; break;
+  case 'voters': pageTitle = 'Voters'; break;
+  case 'editors': pageTitle = 'Editors'; break;
+  case 'moderators': pageTitle = 'Moderators'; break;
+}
+---
+
+<Layout title={`${pageTitle} - Stack Overflow`}>
+  <Header />
+
+  <div class="flex flex-col md:flex-row">
+    {/* Sidebar is hidden on mobile, visible on md screens and up */}
+    <div class="hidden md:block">
+      <Sidebar />
+    </div>
+
+    <main class="flex-1 p-4 md:p-6">
+      <div class="mb-4 md:mb-8">
+        <h1 class="text-xl md:text-2xl font-normal mb-4">{pageTitle}</h1>
+
+        <!-- Search Bar -->
+        <div class="mb-6">
+          <form action="/users" method="get" class="flex items-center">
+            <input
+              type="hidden"
+              name="tab"
+              value={tab}
+            />
+            <div class="relative flex-grow">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" class="text-[#838c95] dark:text-gray-400">
+                  <path d="M18 16.5L14.2642 12.7642C15.566 11.3436 16.1979 9.47552 15.9475 7.6222C15.697 5.76888 14.5844 4.1041 12.8962 3.05259C11.208 2.00108 9.10851 1.65825 7.1577 2.10893C5.20688 2.5596 3.5562 3.76107 2.55751 5.43403C1.55882 7.10699 1.2937 9.10316 1.82301 10.986C2.35231 12.8688 3.63395 14.4719 5.37107 15.4171C7.10819 16.3622 9.16306 16.5651 11.0453 15.9745C12.9276 15.3839 14.4637 14.0481 15.3375 12.3003L19.0785 16.0413L18 16.5ZM8.5 14C7.21442 14 5.95772 13.6188 4.88879 12.9046C3.81985 12.1903 2.98681 11.1752 2.49479 9.98744C2.00277 8.7997 1.87408 7.49279 2.1249 6.23479C2.37572 4.97679 2.99477 3.81978 3.90381 2.91074C4.81285 2.0017 5.96986 1.38265 7.22787 1.13183C8.48587 0.881011 9.79278 1.0097 10.9805 1.50172C12.1683 1.99374 13.1834 2.82678 13.8976 3.89571C14.6118 4.96465 14.993 6.22135 14.993 7.50693C14.9898 9.21631 14.3116 10.8545 13.0926 12.0736C11.8735 13.2926 10.2354 13.9708 8.526 13.974L8.5 14Z" fill="currentColor" />
+                </svg>
+              </div>
+              <input
+                type="text"
+                name="search"
+                placeholder="Filter by user"
+                value={search}
+                class="w-full py-2 pl-10 pr-4 border border-[#babfc4] rounded focus:border-[#6bbbf7] focus:shadow-[0_0_0_4px_rgba(0,116,204,0.15)] dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+              />
+            </div>
+            <button type="submit" class="ml-2 px-4 py-2 bg-[#0a95ff] text-white rounded-[3px] hover:bg-[#0074cc] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.4)] font-normal">
+              Search
+            </button>
+          </form>
+        </div>
+
+        <!-- Tabs -->
+        <div class="border-b border-[#e3e6e8] dark:border-gray-700 mb-4">
+          <nav class="flex flex-wrap -mb-px">
+            <a
+              href={`/users?tab=reputation${search ? `&search=${search}` : ''}`}
+              class={`inline-flex items-center py-2 px-4 border-b-2 text-sm font-medium ${tab === 'reputation' ? 'border-[#f48024] text-[#232629] dark:text-white' : 'border-transparent text-[#6a737c] hover:text-[#232629] hover:border-[#e3e6e8] dark:text-gray-400 dark:hover:text-white dark:hover:border-gray-600'}`}
+            >
+              Reputation
+            </a>
+            <a
+              href={`/users?tab=new_users${search ? `&search=${search}` : ''}`}
+              class={`inline-flex items-center py-2 px-4 border-b-2 text-sm font-medium ${tab === 'new_users' ? 'border-[#f48024] text-[#232629] dark:text-white' : 'border-transparent text-[#6a737c] hover:text-[#232629] hover:border-[#e3e6e8] dark:text-gray-400 dark:hover:text-white dark:hover:border-gray-600'}`}
+            >
+              New users
+            </a>
+            <a
+              href={`/users?tab=voters${search ? `&search=${search}` : ''}`}
+              class={`inline-flex items-center py-2 px-4 border-b-2 text-sm font-medium ${tab === 'voters' ? 'border-[#f48024] text-[#232629] dark:text-white' : 'border-transparent text-[#6a737c] hover:text-[#232629] hover:border-[#e3e6e8] dark:text-gray-400 dark:hover:text-white dark:hover:border-gray-600'}`}
+            >
+              Voters
+            </a>
+            <a
+              href={`/users?tab=editors${search ? `&search=${search}` : ''}`}
+              class={`inline-flex items-center py-2 px-4 border-b-2 text-sm font-medium ${tab === 'editors' ? 'border-[#f48024] text-[#232629] dark:text-white' : 'border-transparent text-[#6a737c] hover:text-[#232629] hover:border-[#e3e6e8] dark:text-gray-400 dark:hover:text-white dark:hover:border-gray-600'}`}
+            >
+              Editors
+            </a>
+            <a
+              href={`/users?tab=moderators${search ? `&search=${search}` : ''}`}
+              class={`inline-flex items-center py-2 px-4 border-b-2 text-sm font-medium ${tab === 'moderators' ? 'border-[#f48024] text-[#232629] dark:text-white' : 'border-transparent text-[#6a737c] hover:text-[#232629] hover:border-[#e3e6e8] dark:text-gray-400 dark:hover:text-white dark:hover:border-gray-600'}`}
+            >
+              Moderators
+            </a>
+          </nav>
+        </div>
+
+        <!-- Users Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {users.map((user: any) => (
+            <div class="border border-[#e3e6e8] dark:border-gray-700 rounded-md p-4 flex flex-col">
+              <div class="flex items-start mb-2">
+                <a href={`/users/${user.id}`} class="flex-shrink-0">
+                  <img
+                    src={user.profileImage}
+                    alt={user.displayName}
+                    class="w-12 h-12 rounded-md"
+                  />
+                </a>
+                <div class="ml-2">
+                  <a href={`/users/${user.id}`} class="text-[#0074cc] hover:text-[#0a95ff] font-medium">
+                    {user.displayName}
+                  </a>
+                  <div class="text-xs text-[#6a737c] dark:text-gray-400">
+                    {user.location ? user.location : 'no location'}
+                  </div>
+                  <div class="text-[#f48024] font-bold mt-1">
+                    {formatNumber(user.reputation)}
+                  </div>
+                </div>
+              </div>
+
+              {/* User tags */}
+              <div class="mt-2 flex flex-wrap gap-1">
+                {user.tags.slice(0, 3).map((tag: string) => (
+                  <a href={`/questions/tagged/${tag}`} class="inline-flex items-center py-0.5 px-1.5 bg-[#e1ecf4] text-[#2c5877] text-xs rounded hover:bg-[#d0e3f1] dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50">
+                    {tag}
+                  </a>
+                ))}
+              </div>
+
+              {/* Badge counts */}
+              <div class="mt-auto pt-3 flex items-center text-xs text-[#6a737c] dark:text-gray-400">
+                {user.badges.gold > 0 && (
+                  <div class="mr-1 flex items-center">
+                    <span class="w-2 h-2 rounded-full bg-[#ffcc00] mr-1"></span>
+                    <span>{user.badges.gold}</span>
+                  </div>
+                )}
+                {user.badges.silver > 0 && (
+                  <div class="mx-1 flex items-center">
+                    <span class="w-2 h-2 rounded-full bg-[#c5c5c5] mr-1"></span>
+                    <span>{user.badges.silver}</span>
+                  </div>
+                )}
+                {user.badges.bronze > 0 && (
+                  <div class="mx-1 flex items-center">
+                    <span class="w-2 h-2 rounded-full bg-[#cc7a00] mr-1"></span>
+                    <span>{user.badges.bronze}</span>
+                  </div>
+                )}
+                <div class="ml-auto text-right">
+                  {formatLastSeen(user.lastSeen)}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <!-- Show message if no users found -->
+        {users.length === 0 && (
+          <div class="p-4 text-center text-[#6a737c] dark:text-gray-400">
+            <p>No users found matching your criteria.</p>
+            <p class="mt-2">Try a different search or browse all users.</p>
+          </div>
+        )}
+
+        <!-- Pagination -->
+        {totalPages > 1 && (
+          <div class="flex justify-center mt-8">
+            <nav aria-label="Pagination" class="flex items-center space-x-2">
+              {currentPage > 1 && (
+                <a
+                  href={`/users?page=${currentPage - 1}&tab=${tab}${search ? `&search=${search}` : ''}`}
+                  class="px-3 py-1 border border-[#d6d9dc] rounded text-[#3b4045] hover:bg-[#f8f9f9] dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+                >
+                  Prev
+                </a>
+              )}
+
+              {/* First page */}
+              {currentPage > 3 && (
+                <a
+                  href={`/users?page=1&tab=${tab}${search ? `&search=${search}` : ''}`}
+                  class="px-3 py-1 border border-[#d6d9dc] rounded text-[#3b4045] hover:bg-[#f8f9f9] dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+                >
+                  1
+                </a>
+              )}
+
+              {/* Ellipsis if needed */}
+              {currentPage > 4 && (
+                <span class="px-3 py-1 text-[#6a737c] dark:text-gray-400">…</span>
+              )}
+
+              {/* Pages around current */}
+              {[...Array(Math.min(5, totalPages))].map((_, i) => {
+                const pageNum = Math.max(1, Math.min(currentPage - 2 + i, totalPages));
+                if (pageNum <= 0 || pageNum > totalPages || (currentPage > 3 && pageNum === 1) || (currentPage < totalPages - 2 && pageNum === totalPages)) return null;
+
+                return (
+                  <a
+                    href={`/users?page=${pageNum}&tab=${tab}${search ? `&search=${search}` : ''}`}
+                    class={`px-3 py-1 border rounded ${currentPage === pageNum ? 'bg-[#f48024] text-white border-[#f48024]' : 'border-[#d6d9dc] text-[#3b4045] hover:bg-[#f8f9f9] dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800'}`}
+                  >
+                    {pageNum}
+                  </a>
+                );
+              })}
+
+              {/* Ellipsis if needed */}
+              {currentPage < totalPages - 3 && (
+                <span class="px-3 py-1 text-[#6a737c] dark:text-gray-400">…</span>
+              )}
+
+              {/* Last page */}
+              {currentPage < totalPages - 2 && (
+                <a
+                  href={`/users?page=${totalPages}&tab=${tab}${search ? `&search=${search}` : ''}`}
+                  class="px-3 py-1 border border-[#d6d9dc] rounded text-[#3b4045] hover:bg-[#f8f9f9] dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+                >
+                  {totalPages}
+                </a>
+              )}
+
+              {currentPage < totalPages && (
+                <a
+                  href={`/users?page=${currentPage + 1}&tab=${tab}${search ? `&search=${search}` : ''}`}
+                  class="px-3 py-1 border border-[#d6d9dc] rounded text-[#3b4045] hover:bg-[#f8f9f9] dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+                >
+                  Next
+                </a>
+              )}
+            </nav>
+          </div>
+        )}
+      </div>
+    </main>
+
+    {/* Right sidebar is hidden on mobile and tablet, visible on lg screens and up */}
+    <div class="hidden lg:block">
+      <RightSidebar />
+    </div>
+  </div>
+
+  <Footer />
+</Layout>
+
+<style>
+  .tag {
+    font-size: 0.7rem;
+    padding: 0.3em 0.5em;
+    background-color: #e1ecf4;
+    color: #2c5877;
+    border-radius: 3px;
+    line-height: 1;
+    text-decoration: none;
+  }
+  .tag:hover {
+    background-color: #d0e3f1;
+  }
+
+  .dark .tag {
+    background-color: rgba(59, 130, 246, 0.2);
+    color: #93c5fd;
+  }
+  .dark .tag:hover {
+    background-color: rgba(59, 130, 246, 0.3);
+  }
+</style>
